@@ -1,0 +1,178 @@
+{
+  "presentacion": {
+    "bloques": [
+      {"tipo": "parrafo", "texto": "Estimado Aprendiz:"},
+      {"tipo": "parrafo", "texto": "Le damos la bienvenida a esta Guía de Aprendizaje, diseñada para consolidar las competencias técnicas que demanda la industria moderna en el marco de la Formación Profesional Integral. El reto central es {competencia_lower} mediante soluciones tecnológicas pertinentes, seguras y sostenibles."},
+      {"tipo": "subtitulo", "texto": "2.3 PROYECCIÓN DEL EGRESADO"},
+      {"tipo": "parrafo", "texto": "En el escenario industrial actual, la automatización evolucionó más allá de los controladores lógicos programables tradicionales. El dominio de {tema} le permitirá desarrollar soluciones personalizadas de bajo costo, implementar inteligencia en el origen y cerrar la brecha hacia la Industria 4.0 y el Internet de las Cosas."},
+      {"tipo": "subtitulo", "texto": "Alineación con su Perfil y Proyección Profesional"},
+      {"tipo": "parrafo", "texto": "El aprendizaje de esta disciplina se relaciona directamente con el Perfil General del Egresado y con su Proyección Laboral y Empresarial, capacitándolo para operar, desarrollar, integrar y mantener equipos automatizados en procesos de manufactura."},
+      {"tipo": "lista", "texto": "Diseño y acondicionamiento eléctrico de interfaces de potencia."},
+      {"tipo": "lista", "texto": "Programación estructurada y simulación de algoritmos de control."},
+      {"tipo": "lista", "texto": "Comisionamiento y puesta a punto de gabinetes de control bajo criterios de seguridad y salud en el trabajo."},
+      {"tipo": "lista", "texto": "Creación de propuestas de innovación tecnológica para el sector productivo."},
+      {"tipo": "parrafo", "texto": "Lo invitamos a asumir este reto con rigurosidad técnica, espíritu investigador y trabajo colaborativo, aprovechando cada sesión de taller para transformar el conocimiento teórico en soluciones operativas."}
+    ]
+  },
+  "reflexion_inicial": {
+    "titulo": "Estudio de caso",
+    "introduccion": "En una empresa del sector, un equipo crítico del proceso de {proyecto_lower} presenta una falla que detiene la producción y no existe repuesto inmediato. Como aprendiz de {programa_lower}, debe proponer una solución provisional con los recursos disponibles, analizando alternativas desde la electrónica, la programación y la mecánica.",
+    "instrucciones": [
+      "Electrónica análoga/digital: ¿podría construir un circuito con sensores básicos y compuertas lógicas para sustituir la función del equipo averiado?",
+      "Programación/PC: ¿podría usar un computador para procesar la señal, considerando que el entorno es industrial y húmedo?",
+      "Mecánica de fluidos: ¿existe una forma mecánica de estimar la variable mientras llega el repuesto?"
+    ],
+    "debate": [
+      "¿Qué tan costoso y voluminoso sería dejar un computador dedicado solo a esa tarea?",
+      "Si el proceso cambia, ¿qué tan fácil es modificar un circuito de electrónica análoga comparado con un software?",
+      "¿Existe un dispositivo pequeño como un chip, pero potente como un computador, para resolver el problema?"
+    ],
+    "ambiente": "Ambiente de formación con mesas de trabajo, computadores y acceso a documentación técnica del proceso.",
+    "estrategias": "Estudio de caso y lluvia de ideas (brainstorming).",
+    "materiales": {
+      "consumible": "Papelería, tarjetas de prueba y componentes electrónicos básicos.",
+      "devolutivo": "Multímetro, computadores y kit de sensores.",
+      "apoyo": "Ficha técnica del proceso y guía de prácticas."
+    },
+    "instrumentos": ["Lista de chequeo de análisis de alternativas"],
+    "duracion_horas": 2,
+    "modalidad": "Grupal",
+    "evidencias": [],
+    "criterios": []
+  },
+  "contextualizacion": {
+    "titulo": "Contraste de soluciones tecnológicas",
+    "introduccion": "Se requiere automatizar una estación de trabajo que ejecuta una secuencia de movimiento. Los aprendices deben abordar el problema desde dos perspectivas tecnológicas y comparar sus ventajas y limitaciones.",
+    "instrucciones": [
+      "Diseño cableado: dibujar el esquema de control con relés, finales de carrera y solenoides, asegurando que no existan bloqueos neumáticos.",
+      "Diseño algorítmico: traducir la secuencia a un diagrama de flujo o pseudocódigo, identificando variables de entrada y salida.",
+      "Simulación: ejecutar el diseño en software especializado y verificar el cumplimiento de la secuencia antes de modificar tiempos u orden."
+    ],
+    "ambiente": "Ambiente de formación con computadores dotados de software de simulación de sistemas electroneumáticos y editores de diagramas.",
+    "estrategias": "Contraste de soluciones tecnológicas y aprendizaje basado en problemas (ABP).",
+    "materiales": {
+      "consumible": "Papelería y material de rotulación.",
+      "devolutivo": "Computadores con software de simulación.",
+      "apoyo": "Guía de prácticas y fichas técnicas."
+    },
+    "instrumentos": ["Lista de chequeo de lógica de secuencia"],
+    "duracion_horas": 2,
+    "modalidad": "Grupal",
+    "evidencias": [],
+    "criterios": []
+  },
+  "apropiacion": {
+    "titulo": "Implementar el circuito de acondicionamiento e interfaz de sensores y actuadores",
+    "introduccion": "Con el desarrollo de esta actividad se implementará un sistema de control y monitoreo para los sensores y actuadores de la máquina o proceso asignado, utilizando un sistema embebido y verificando su funcionamiento según las especificaciones técnicas.",
+    "instrucciones": [
+      "Identificar requerimientos técnicos: definir variables, rangos de voltaje y corriente, velocidad de operación, tipos de señal y cantidad de entradas y salidas del proceso.",
+      "Seleccionar el hardware: comparar alternativas de sistemas embebidos según cantidad de E/S digitales y analógicas, PullUp/PullDown, frecuencia de procesamiento, memorias y ancho de bus de datos.",
+      "Diseñar el algoritmo: elaborar la tabla de entradas y salidas, el pseudocódigo, el diagrama de flujo o el Grafcet y realizar la prueba de escritorio de al menos un subproceso.",
+      "Programar y simular: analizar las opciones de software, desarrollar el código y validarlo en simulación antes del montaje físico, documentando el código.",
+      "Implementar la interfaz de potencia: diseñar los circuitos con relés, optoacopladores o transistores y definir la alimentación del sistema embebido.",
+      "Comisionar: realizar el montaje final, cablear sensores y actuadores, depurar errores de lógica y poner a punto la máquina.",
+      "Documentar: compilar los resultados en un informe técnico según los instrumentos de evaluación entregados por el instructor."
+    ],
+    "ambiente": "Ambientes de Control Electromecánico, Control Industrial, Electrónica, Sistemas de Manufactura, Informática Industrial y Sistemas de Regulación.",
+    "estrategias": "Aprendizaje basado en proyectos (ABP) y resolución de problemas reales o simulados.",
+    "materiales": {
+      "consumible": "Protoboard, pinzas, pelacables, destornilladores, conductores, componentes electrónicos, terminales, termoencogible y amarres plásticos.",
+      "devolutivo": "Multímetro, ponchadora, computadores y sistema de manufactura a automatizar.",
+      "apoyo": "Fichas técnicas del sistema, tabla de comparación de sistemas embebidos y guía de prácticas."
+    },
+    "instrumentos": ["Lista de observación", "Lista de chequeo"],
+    "duracion_horas": 32,
+    "modalidad": "Grupal",
+    "evidencias": [
+      "Sistema de monitoreo y diagnóstico de sensores y actuadores implementado con sistema embebido.",
+      "Informe del diseño, la simulación y la implementación del sistema."
+    ],
+    "criterios": [
+      "Selecciona el sistema embebido según requerimientos técnicos del sistema.",
+      "Define la estructura y características del sistema embebido según necesidades del proyecto.",
+      "Desarrolla el programa de control del sistema embebido según lenguaje de programación y programas de compilación.",
+      "Simula el funcionamiento del sistema embebido según programas y especificaciones de funcionamiento.",
+      "Realiza la conexión del sistema embebido según necesidades de diseño y técnicas de montaje.",
+      "Documenta la programación del sistema embebido según requerimientos técnicos."
+    ]
+  },
+  "transferencia": {
+    "titulo": "Conectar la máquina o proceso automatizado a una red IoT",
+    "introduccion": "Comisionar el sistema mecatrónico integrando conceptos de Internet de las Cosas. Esta actividad busca conectar la máquina o proceso controlado por el sistema embebido a una red IoT, configurar la comunicación en tiempo real y diseñar una interfaz gráfica para monitorear y controlar el proceso de forma remota.",
+    "instrucciones": [
+      "Identificar requerimientos técnicos: definir variables del proceso, interfaz de control o visualización y estados de funcionamiento, seguridad y modos manual/automático.",
+      "Seleccionar el hardware: comparar alternativas de sistemas embebidos con periféricos de comunicación, memorias y E/S, y justificar la opción más viable.",
+      "Diseñar el algoritmo: presentar la tabla de E/S, la composición gráfica de la interfaz y la arquitectura de la red IoT, con pseudocódigo o diagramas de estado.",
+      "Programar y simular: implementar la red IoT, desarrollar el código y validarlo en simulación antes del montaje físico.",
+      "Implementar la interfaz de potencia: diseñar los circuitos para sensores y actuadores discretos y definir la alimentación del sistema embebido.",
+      "Comisionar: realizar el montaje final, cablear sensores y actuadores, depurar errores de lógica y poner a punto la máquina.",
+      "Documentar: elaborar un informe describiendo cada etapa del proceso realizado."
+    ],
+    "ambiente": "Ambiente de formación con conectividad a redes de datos y acceso a plataformas de computación en la nube.",
+    "estrategias": "Taller práctico de integración tecnológica y uso de herramientas colaborativas en internet.",
+    "materiales": {
+      "consumible": "Conductores, terminales, componentes electrónicos y material de rotulación.",
+      "devolutivo": "Sistemas embebidos con módulos Wi-Fi/Ethernet, routers industriales, computadores y multímetro.",
+      "apoyo": "Guías sobre protocolos de comunicación industrial, manuales de herramientas SCADA/HMI y normativa sobre manejo de información."
+    },
+    "instrumentos": ["Cuestionario de validación técnica de conectividad", "Lista de verificación de integridad de datos"],
+    "duracion_horas": 28,
+    "modalidad": "Grupal",
+    "evidencias": [
+      "Interfaz IoT operativa con visualización de variables del proceso.",
+      "Máquina o proceso automatizado conectado a un servidor IoT.",
+      "Informe de comisionamiento del sistema."
+    ],
+    "criterios": [
+      "Selecciona el sistema embebido según requerimientos técnicos del sistema.",
+      "Define la estructura y características del sistema embebido según necesidades del proyecto.",
+      "Desarrolla el programa de control del sistema embebido según lenguaje de programación y programas de compilación.",
+      "Simula el funcionamiento del sistema embebido según programas y especificaciones de funcionamiento.",
+      "Realiza la conexión del sistema embebido según necesidades de diseño y técnicas de montaje.",
+      "Documenta la programación del sistema embebido según requerimientos técnicos."
+    ]
+  },
+  "tema_rules": {
+    "default": "los sistemas embebidos y la automatización",
+    "rules": [
+      {"contains": ["embebido"], "tema": "los sistemas embebidos"},
+      {"contains": ["iot", "internet de las cosas"], "tema": "el Internet de las Cosas"}
+    ]
+  },
+  "apropiacion_extra": {
+    "titulo": "Comisionar la máquina o proceso automatizado controlado por sistema embebido (apropiación {numero})",
+    "introduccion": "Esta actividad complementa la implementación del sistema embebido. Se enfoca en el montaje final, la integración de periféricos, la depuración de errores de lógica y la puesta a punto del proceso según los requerimientos del cliente.",
+    "instrucciones": [
+      "Seleccionar el hardware definitivo y verificar la disponibilidad de entradas y salidas requeridas.",
+      "Implementar la interfaz de potencia y las protecciones eléctricas del sistema.",
+      "Realizar el montaje final, el cableado de sensores y actuadores y la depuración de errores.",
+      "Documentar las pruebas, los ajustes y las instrucciones de operación del sistema."
+    ],
+    "duracion_horas": 16,
+    "evidencias": [
+      "Máquina o proceso automatizado controlado con sistema embebido.",
+      "Informe de comisionamiento, pruebas y ajustes del sistema."
+    ],
+    "instrumentos": ["Lista de observación", "Lista de chequeo de comisionamiento"]
+  },
+  "glosario": [
+    {"termino": "Sistema embebido (SE)", "definicion": "Sistema de cómputo dedicado a una función específica dentro de un producto o proceso, con hardware y software integrados."},
+    {"termino": "GPIO", "definicion": "Pin de entrada o salida de propósito general que puede configurarse para leer sensores o activar actuadores."},
+    {"termino": "PWM", "definicion": "Modulación por ancho de pulso usada para controlar velocidad, intensidad o posición de actuadores."},
+    {"termino": "ADC", "definicion": "Conversor analógico-digital que transforma una señal de voltaje en un valor digital procesable."},
+    {"termino": "Grafcet", "definicion": "Representación gráfica de estados y transiciones para describir sistemas secuenciales."},
+    {"termino": "IoT", "definicion": "Internet de las Cosas: integración de dispositivos físicos a redes de datos para monitoreo y control remoto."},
+    {"termino": "MQTT", "definicion": "Protocolo de mensajería ligero basado en publicador/suscriptor, ampliamente usado en aplicaciones IoT."},
+    {"termino": "Comisionamiento", "definicion": "Conjunto de pruebas y ajustes que se realizan para poner en operación un sistema automatizado."},
+    {"termino": "Interfaz de potencia", "definicion": "Circuito que aísla y adapta las señales del controlador para operar actuadores de mayor voltaje o corriente."},
+    {"termino": "Optoacoplador", "definicion": "Dispositivo que transmite una señal mediante luz para aislar eléctricamente dos circuitos."}
+  ],
+  "referencias": [
+    "Servicio Nacional de Aprendizaje (SENA). Diseño Curricular del Tecnólogo en Automatización de Sistemas Mecatrónicos. Bogotá: SENA.",
+    "SENA. Guía de Desarrollo Curricular y Formato Guía de Aprendizaje GFPI-F-135.",
+    "Paret, D. (2023). Sistemas embebidos y microcontroladores: diseño y programación. Madrid: Ediciones Técnicas.",
+    "RETIE. Reglamento Técnico de Instalaciones Eléctricas. Colombia.",
+    "Instituto Colombiano de Normas Técnicas. NTC 2050. Código Eléctrico Colombiano.",
+    "Documentación oficial de ESP32, Arduino y plataformas de Internet de las Cosas."
+  ]
+}

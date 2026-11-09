@@ -1,0 +1,301 @@
+{
+  "meta": {
+    "titulo_proceso": "PROCESO DE GESTIÓN DE FORMACIÓN PROFESIONAL INTEGRAL",
+    "titulo_formato": "FORMATO GUÍA DE APRENDIZAJE"
+  },
+  "identificacion": {
+    "programa": "AUTOMATIZACION DE SISTEMAS MECATRONICOS",
+    "codigo_programa": "224312",
+    "proyecto_formativo": "AUTOMATIZACIÓN Y OPTIMIZACIÓN DE UN PROCESO DE MANUFACTURA",
+    "fase": "FASE 5 CONTROL PROGRAMABLE",
+    "actividad_proyecto": "AUTOMATIZAR SISTEMA MECATRÓNICO CON PROCESOS SECUENCIALES Y CONTINUOS, MEDIANTE EQUIPOS DE CONTROL",
+    "competencia": "PROGRAMACIÓN DE EQUIPOS PARA PROCESOS DE MANUFACTURA",
+    "resultados_aprendizaje": "RAE23: AUTOMATIZAR EQUIPO MECATRÓNICO CON SISTEMA EMBEBIDO SEGÚN LAS ESPECIFICACIONES DE FUNCIONAMIENTO ESTABLECIDAS",
+    "duracion_horas": 96.0
+  },
+  "presentacion": {
+    "bloques": [
+      {
+        "tipo": "parrafo",
+        "texto": "Estimado Aprendiz:"
+      },
+      {
+        "tipo": "parrafo",
+        "texto": "Le damos la bienvenida a esta Guía de Aprendizaje, diseñada para consolidar las competencias técnicas que demanda la industria moderna en el marco de la Formación Profesional Integral."
+      },
+      {
+        "tipo": "parrafo",
+        "texto": "En el escenario industrial actual, la automatización ha evolucionado más allá de los controladores lógicos programables (PLC) tradicionales y cerrados. Aprender sobre sistemas embebidos (SE) es fundamental porque constituyen el **\"cerebro compacto e inteligente\"** de la mecatrónica moderna. El dominio de esta tecnología le otorga a usted la capacidad de:"
+      },
+      {
+        "tipo": "lista",
+        "texto": "1. **Desarrollar soluciones personalizadas y de bajo costo:** Permite migrar de arquitecturas propietarias costosas hacia sistemas a medida, haciendo viable la automatización y modernización de procesos en micro, pequeñas y medianas empresas (MIPYMES) que no cuentan con grandes presupuestos de capital."
+      },
+      {
+        "tipo": "lista",
+        "texto": "2. **Implementar inteligencia en el origen (Edge Computing) y diagnóstico en tiempo real:** Los sistemas embebidos permiten procesar la información de los sensores directamente en la máquina, ejecutando rutinas de autodiagnóstico que detectan fallas (como circuitos abiertos o cortocircuitos) e interfieren antes de que ocurra una parada crítica de producción."
+      },
+      {
+        "tipo": "lista",
+        "texto": "3. **Cerrar la brecha hacia la Industria 4.0 e IoT:** Funcionan como la interfaz física que conecta sensores y actuadores del mundo real con redes inalámbricas, servidores en la nube y paneles de supervisión remota (Dashboards IoT)."
+      },
+      {
+        "tipo": "subtitulo",
+        "texto": "### **Alineación con su Perfil y Proyección Profesional**"
+      },
+      {
+        "tipo": "parrafo",
+        "texto": "El aprendizaje de esta disciplina se relaciona directamente con el **Perfil General del Egresado (Sección 2.4 del Diseño Curricular)**, capacitándolo para **operar, desarrollar, integrar y mantener equipos automatizados en procesos de manufactura**."
+      },
+      {
+        "tipo": "parrafo",
+        "texto": "Asimismo, en el marco de su **Proyección Laboral y Empresarial (Secciones 2.3.1 y 2.3.2)**, el estudio de esta guía le brindará las herramientas para desempeñarse en plantas industriales en funciones clave como:"
+      },
+      {
+        "tipo": "lista",
+        "texto": "* El **diseño y acondicionamiento eléctrico** de interfaces de potencia (aislando zonas de control y alta potencia mediante optoacopladores y relés)."
+      },
+      {
+        "tipo": "lista",
+        "texto": "* La **programación estructurada y simulación** de algoritmos de control secuencial."
+      },
+      {
+        "tipo": "lista",
+        "texto": "* El **comisionamiento y puesta a punto** de gabinetes de control bajo criterios estricto de **Seguridad y Salud en el Trabajo (SST) y normatividad ambiental**."
+      },
+      {
+        "tipo": "lista",
+        "texto": "* La **creación de propuestas de innovación tecnológica (Sección 2.3.5)** que incrementen la competitividad del sector productivo regional."
+      },
+      {
+        "tipo": "parrafo",
+        "texto": "Lo invitamos a asumir este reto con rigurosidad técnica, espíritu investigador y trabajo colaborativo, aprovechando cada sesión de taller para transformar el conocimiento teórico en soluciones mecatrónicas operativas. ¡Muchos éxitos en su proceso de formación!"
+      }
+    ]
+  },
+  "momentos": {
+    "reflexion_inicial": {
+      "titulo": "Actividades de reflexión inicial",
+      "actividades": [
+        {
+          "titulo": "Estudio de caso",
+          "introduccion": "En la empresa X SAS, el transmisor de flujo de una máquina mezcladora se ha dañado. Sin este instrumento, no se puede medir la cantidad exacta de ingredientes líquidos, lo que detendrá la producción por tres meses. Usted, como aprendiz de automatización, debe proponer una solución provisional utilizando exclusivamente las herramientas que conoce hasta hoy:",
+          "instrucciones": [
+            "Electrónica Análoga/Digital: ¿Podría construir un circuito con sensores básicos y compuertas lógicas o amplificadores para detectar niveles de flujo?",
+            "Programación/PC: ¿Podría usar un computador de la oficina para procesar la señal, considerando que es un entorno industrial húmedo?",
+            "Mecánica de Fluidos: ¿Existe una forma mecánica de estimar el flujo (ej. por tiempo de llenado o presión) mientras llega el repuesto?"
+          ],
+          "debate": [
+            "¿Qué tan costoso y voluminoso sería dejar un computador dedicado solo a medir ese flujo?",
+            "Si el proceso cambia (se requiere mezclar otro producto), ¿qué tan fácil es modificar un circuito de electrónica análoga comparado con un software?.",
+            "¿Existe algún dispositivo que sea pequeño como un chip, pero potente como un computador para esta tarea?"
+          ],
+          "ambiente": "Se requiere de ambientes para las siguientes áreas de conocimiento: Control Electromecánico, Control Industrial, Electrónica, Sistemas De Manufactura, Informática Industrial, Sistema De Regulación.",
+          "estrategias": "Estudio de caso y lluvia de ideas (Brainstorming).",
+          "materiales": {
+            "consumible": "",
+            "devolutivo": "",
+            "apoyo": ""
+          },
+          "instrumentos": [],
+          "duracion_horas": 2.0,
+          "modalidad": "Grupal",
+          "evidencias": [],
+          "criterios": []
+        }
+      ]
+    },
+    "contextualizacion": {
+      "titulo": "Actividades de contextualización e identificación de conocimientos necesarios para el aprendizaje",
+      "actividades": [
+        {
+          "titulo": "Contraste de soluciones tecnológicas",
+          "introduccion": "Se requiere automatizar una estación de trabajo que realiza la secuencia A+ B+ A- B- (el actuador A sale, luego el B sale, el A regresa y finalmente el B regresa). Los aprendices deben abordar el problema desde dos perspectivas tecnológicas:",
+          "instrucciones": [
+            "Diseño Cableado: Dibujar el esquema de control utilizando relés, finales de carrera y solenoides, asegurando que no existan bloqueos neumáticos.",
+            "Diseño Algorítmico: Traducir esa misma secuencia a un diagrama de flujo o pseudocódigo, identificando las variables de entrada (sensores) y salida (bobinas de las válvulas).",
+            "Simulación: Ejecutar el diseño en software especializado para verificar que la secuencia se cumpla correctamente antes de discutir la facilidad de modificar los tiempos o el orden de la secuencia en cada método."
+          ],
+          "debate": [],
+          "ambiente": "Ambiente de formación con computadores dotados de software de simulación de sistemas electroneumáticos y editores de diagramas.",
+          "estrategias": "Contraste de soluciones tecnológicas y aprendizaje basado en problemas (ABP).",
+          "materiales": {
+            "consumible": "",
+            "devolutivo": "",
+            "apoyo": "Computador, software de simulación (tipo FluidSim o similar), guías ."
+          },
+          "instrumentos": [
+            "Lista de chequeo para verificar la lógica de la secuencia y la correcta representación de símbolos y estructuras algorítmicas."
+          ],
+          "duracion_horas": 2.0,
+          "modalidad": "Grupal",
+          "evidencias": [],
+          "criterios": []
+        }
+      ]
+    },
+    "apropiacion": {
+      "titulo": "Actividades de apropiación",
+      "actividades": [
+        {
+          "titulo": "Implementar el circuito de acondicionamiento e interfaz de sensores y actuadores, integrando un sistema embebido bajo las especificaciones técnicas de la máquina.",
+          "introduccion": "Con el desarrollo de esta actividad se desarrollará e implementará un sistema de diagnóstico y monitoreo de estados para los sensores y actuadores de una máquina o proceso mecatrónico, utilizando un sistema embebido (SE) para la detección, localización y reporte de fallas operativas según requerimientos técnicos.\n\nEl instructor hará la asignación de una planta o estación que será objeto de automatización mediante un SE elegido o asignado según disponibilidad. Siga las siguientes instrucciones para obtener los resultados esperados:",
+          "instrucciones": [
+            "Identificar requerimientos técnicos: Según la documentación y la explicación dada por el instructor defina las variables involucradas de los sensores y actuadores del proceso como: rango de voltaje y/o corriente, velocidad de operación; cantidad y tipos de señal de entradas/salidas y otras según el proceso a monitorear. Incluya los resultados de este análisis en el informe de la evidencia.",
+            "Selección del hardware:  Consulte sobre los aspectos de selección mostrados en la tabla T_EV1_Comparación de Sistemas Embebidos. Realice una comparación de diversas alternativas de SE teniendo en cuenta aspectos como cantidad de E/S Digitales y Analógicas, entradas PullUp/PullDown,  Frecuencia de procesamiento, Tamaño de memorias RAM, Flash y EEProm; ancho de bus de datos y otras que el instructor especifique. Incluya los resultados de la consulta como base teórica del informe y anexe la tabla en el informe de la evidencia.",
+            "Diseño del algoritmo: Presente una tabla E/S (mapeo de señales) indicando nombre de variable de entrada, salida o interna, dirección o pin donde conectará cada una de las señales del proceso. Diseñe el seudocódigo, diagramas de flujo o diagramas de estado (Grafcet) que describa el funcionamiento del sistema. Realice la prueba de escritorio de por lo menos un subproceso del algoritmo. Inclúyalos en el informe de evidencia.",
+            "Programación y Simulación: Esta etapa contiene las siguientes subactividades:",
+            "Haga un análisis de las opciones de software para la programación y la simulación del sistema o proceso a automatizar.",
+            "Del documento Actividades_RAE23_T5.pdf desarrolle los ejercicios de la sección 11.7. Actividad 7 – Microcontrolador.",
+            "Desarrolle el código solución basado en los algoritmos diseñados en la etapa previa usando el software adecuado para la programación del SE elegido o asignado; valide su funcionamiento mediante herramientas de simulación antes del montaje físico. Se tendrá en cuenta la debida documentación del código (comentarios y consistencia de estilos de etiquetado).",
+            "Adjunte los archivos de simulación y de los códigos en el LMS e incluya sus enlaces dentro del informe de la evidencia. Nombre los archivos de la forma “GSxxxxxxx_ETy_EV2_Simulación (Código) de Actividad 1.zz” donde x representa el número de ficha en SOFIA, y el número de equipo de trabajo asignado y z la extensión del archivo.",
+            "Implementación de Interfaz de Potencia: Diseñe e implemente los circuitos necesarios (relés, optoacopladores, transistores) para la conexión de los sensores y el manejo de los actuadores del sistema. Tenga en cuenta la fuente de alimentación de voltaje para el sistema embebido. Realice un video explicando el proceso de implementación y demostración del funcionamiento de la interfaz de potencia. Realice un manual de usuario explicando el proceso de conexión de los elementos de la interfaz de potencia al sistema embebido. Agregue este manual como una sección de su informe.",
+            "Comisionamiento: Realice el montaje final, cableado de sensores y actuadores al SE, depuración de errores de lógica y puesta a punto de la máquina. Incluya en el informe las instrucciones para la comprobación del estado de los sensores y actuadores del sistema (mediciones, aspectos de seguridad, herramientas necesarias). Realice un video explicando el proceso de implementación y demostración del funcionamiento de los periféricos del sistema. Guarde el video con el nombre “GSxxxxxxx_ETy_EV1_Sistema de diagnóstico.zz” donde x representa el número de ficha en SOFIA, y el número de equipo de trabajo asignado y z la extensión del archivo del video. Enlace el acceso al video en el informe y en la plataforma LMS.",
+            "Documentación: Compile los resultados según las indicaciones en las etapas anteriores y siguiendo las instrucciones de su instructor presente un informe escrito tipo artículo registrando los aspectos según la lista de observación entregada por el instructor. Nombre el archivo de la forma “GSxxxxxxx_ETy_EV2_Informe de Actividad 1.zz” donde x representa el número de ficha en SOFIA, y el número de equipo de trabajo asignado y z la extensión del documento."
+          ],
+          "debate": [],
+          "ambiente": "Se requiere de ambientes para las siguientes áreas de conocimiento: Control Electromecánico, Control Industrial, Electrónica, Sistemas De Manufactura, Informática Industrial, Sistema De Regulación.",
+          "estrategias": "Aprendizaje basado en proyectos (ABP) y resolución de problemas reales o simulados.",
+          "materiales": {
+            "consumible": "Protoboard, pinzas de punta, pinzas de corte, pelacables, juego de destornilladores, ESP32 WROOM u otro SE, sistema de manufactura a automatizar, sensores, conductores, componentes electrónicos, cinta aislante, terminales, termoencogible, amarres plásticos.",
+            "devolutivo": "Multímetro, ponchadora, computadores.",
+            "apoyo": "Fichas técnicas del sistema objeto de automatización entregadas por el instructor\nTabla T_EV1_Comparación de Sistemas Embebidos\nGuía de prácticas (Actividades_RAE23_T5.pdf)."
+          },
+          "instrumentos": [
+            "ListaObservación_R23T5P7",
+            "ListaChequeo_R23T5D8",
+            "ListaObservación_R23T5P8"
+          ],
+          "duracion_horas": 48.0,
+          "modalidad": "Grupal",
+          "evidencias": [
+            "Sistema de diagnóstico de sensores y actuadores para una máquina o proceso controlado con un sistema embebido.",
+            "Informe del diseño y la simulación del sistema según indicaciones del instructor."
+          ],
+          "criterios": []
+        },
+        {
+          "titulo": "Comisionar la máquina o proceso automatizado controlado por sistema embebido según requerimientos del cliente.",
+          "introduccion": "Con el desarrollo de esta actividad se implementará el sistema de control de una máquina o proceso mecatrónico incluida una interfaz de visualización, utilizando un sistema embebido según requerimientos técnicos indicados por el instructor.\n\nSiga las siguientes instrucciones para obtener los resultados esperados.",
+          "instrucciones": [
+            "Identificar requerimientos técnicos: Según la documentación y la explicación dada por el instructor defina las variables involucradas del proceso al igual que la interfaz de control o visualización y los diferentes estados de funcionamiento (seguridad, modo manual/automático) según el proceso a monitorear. Incluya los resultados de este análisis en el informe de la evidencia.",
+            "Selección del hardware:  Según los resultados de la consulta realizada en la actividad anterior diga cuál es la opción de sistema embebido, interfaz de visualización y comunicación más viable para la implementación en el sistema asignado. Incluya los resultados de este análisis en el informe de la evidencia.",
+            "Diseño del algoritmo: Agregue los algoritmos de descripción de los estados y protocolos de comunicaciones. Realice la prueba de escritorio de por lo menos un subproceso del algoritmo. Inclúyalos en el informe de evidencia.",
+            "Programación y Simulación: Esta etapa contiene las siguientes subactividades:",
+            "Desarrolle el código solución basado en los algoritmos diseñados en la etapa previa usando el software adecuado para la programación del SE elegido o asignado; valide su funcionamiento mediante herramientas de simulación antes del montaje físico. Se tendrá en cuenta la debida documentación del código (comentarios y consistencia de estilos de etiquetado).",
+            "Adjunte los archivos de simulación y de los códigos en el LMS e incluya sus enlaces dentro del informe de la evidencia. Nombre los archivos de la forma “GSxxxxxxx_ETy_EV4_Simulación (Código) de Actividad 1.zz” donde x representa el número de ficha en SOFIA, y el número de equipo de trabajo asignado y z la extensión del archivo.",
+            "Implementación de Interfaz de Potencia: Diseñe e implemente los elementos de comunicación cableada y/o la interfaz gráfica de usuario. Realice un video explicando el proceso de implementación y demostración del funcionamiento de la interfaz de potencia. Guarde el video con el nombre “GSxxxxxxx_ETy_Ev3_Interfaz de potencia.zz” donde x representa el número de ficha en SOFIA, y el número de equipo de trabajo asignado y z la extensión del archivo del video. Enlace el acceso al video en el informe y en la plataforma LMS.",
+            "Comisionamiento: Realice el montaje final, cableado de elementos de interfaz de usuario y comunicaciones cableadas al SE, depuración de errores de lógica y puesta a punto de la máquina. Incluya en el informe las instrucciones para la comprobación de los estados de funcionamiento del sistema (mediciones, aspectos de seguridad, herramientas necesarias). Realice un video explicando el proceso de implementación y demostración del funcionamiento de los periféricos del sistema. Guarde el video con el nombre “GSxxxxxxx_ETy_EV3_Sistema de diagnóstico.zz” donde x representa el número de ficha en SOFIA, y el número de grupo de trabajo asignado y z la extensión del archivo del video. Enlace el acceso al video en el informe y en la plataforma LMS.",
+            "Documentación: Compile los resultados según las indicaciones en las etapas anteriores y siguiendo las instrucciones de su instructor actualice a una nueva versión del informe presentado en la evidencia anterior registrando los aspectos según la lista de observación entregada por el instructor. Nombre el archivo de la forma “GSxxxxxxx_ETy_EV4_Informe de Actividad 1.zz” donde x representa el número de ficha en SOFIA, y el número de grupo de trabajo asignado y z la extensión del documento."
+          ],
+          "debate": [],
+          "ambiente": "Se requiere de ambientes para las siguientes áreas de conocimiento: Control Electromecánico, Control Industrial, Electrónica, Sistemas De Manufactura, Informática Industrial, Sistema De Regulación.",
+          "estrategias": "Aprendizaje basado en proyectos (ABP) y resolución de problemas reales o simulados.",
+          "materiales": {
+            "consumible": "Protoboard, pinzas de punta, pinzas de corte, pelacables, juego de destornilladores, ESP32 WROOM u otro SE, sistema de manufactura a automatizar, sensores, conductores, componentes electrónicos, cinta aislante, terminales, termoencogible, amarres plásticos.",
+            "devolutivo": "Multímetro, ponchadora, computadores.",
+            "apoyo": "Fichas técnicas del sistema objeto de automatización entregadas por el instructor\nTabla T_EV1_Comparación de Sistemas Embebidos\nGuía de prácticas (Actividades_RAE23_T5.pdf)."
+          },
+          "instrumentos": [
+            "ListaObservación_R23T5P7",
+            "ListaChequeo_R23T5D8",
+            "ListaObservación_R23T5P8"
+          ],
+          "duracion_horas": 20.0,
+          "modalidad": "Grupal",
+          "evidencias": [
+            "Máquina o proceso automatizado controlado con un sistema embebido.",
+            "Informe del diseño y la simulación del sistema según indicaciones del instructor."
+          ],
+          "criterios": []
+        }
+      ]
+    },
+    "transferencia": {
+      "titulo": "Actividades de transferencia del conocimiento",
+      "actividades": [
+        {
+          "titulo": "Conectar la máquina o proceso automatizado controlado por sistema embebido a una red IoT según especificaciones técnicas.",
+          "introduccion": "Comisionar el sistema mecatrónico integrando conceptos de Internet de las Cosas (IoT). Esta actividad busca establecer la conexión de la máquina o proceso controlado por el sistema embebido (SE) a una red de Internet de las cosas (IoT) además de configurar la comunicación en tiempo real y diseñar una interfaz gráfica (dashboard) en un servidor IoT para monitorear y controlar el proceso de forma remota. Se deben integrar periféricos y asegurar la transmisión de datos según los requerimientos del cliente.",
+          "instrucciones": [
+            "Identificar requerimientos técnicos: Según la documentación y la explicación dada por el instructor defina las variables involucradas de los elementos del proceso orientado a la implementación de una red IoT y su visualización en una interfaz gráfica de usuario.",
+            "Selección del hardware:  Realice una comparación de diversas alternativas de sistemas embebidos teniendo en cuenta aspectos como cantidad de E/S Digitales y Analógicas, entradas PullUp/PullDown,  Frecuencia de procesamiento, Tamaño de memoria RAM, Flash, EEProm, ancho de bus de datos, periféricos de comunicación y otras que el instructor especifique.",
+            "Según los resultados de la consulta anterior diga cuál es la opción más viable para la implementación en el sistema asignado.",
+            "Diseño del algoritmo: Presente una tabla E/S indicando el puerto o pin donde conectará cada una de las señales del proceso. Presente la composición gráfica de su propuesta GUI y la arquitectura de la red IoT. Diseñe el seudocódigo, diagramas de flujo o diagramas de estado (Grafcet) que describa el funcionamiento del sistema.",
+            "Programación y Simulación: Implemente un sistema de red IoT y valide su funcionalidad. Desarrolle el código en software especializado y valide su funcionamiento mediante herramientas de simulación antes del montaje físico. Se tendrá en cuenta la debida documentación del código (comentarios y etiquetado).",
+            "Implementación de Interfaz de Potencia: Diseñe los circuitos necesarios (relés, optoacopladores, transistores) para la conexión de los sensores y el manejo de los actuadores discretos del sistema. Tenga en cuenta la fuente de alimentación de voltaje para el sistema embebido.",
+            "Comisionamiento: Realice el montaje final, cableado de sensores y actuadores, depuración de errores de lógica y puesta a punto de la máquina. Elabore un informe describiendo cada etapa del proceso realizado."
+          ],
+          "debate": [],
+          "ambiente": "Ambiente de formación con conectividad a redes de datos y acceso a plataformas de computación en la nube.",
+          "estrategias": "Taller práctico de integración tecnológica y uso de herramientas colaborativas en internet.",
+          "materiales": {
+            "consumible": "",
+            "devolutivo": "",
+            "apoyo": "Sistemas embebidos con módulos de comunicación (Wi-Fi/Ethernet), routers industriales y acceso a servidores o brokers MQTT.\nGuías sobre protocolos de comunicación industrial, manuales de herramientas SCADA/HMI y normativa sobre manejo de información."
+          },
+          "instrumentos": [
+            "Cuestionario de validación técnica de la conectividad y lista de verificación de la integridad de los datos en el servidor."
+          ],
+          "duracion_horas": 28.0,
+          "modalidad": "Grupal",
+          "evidencias": [
+            "Interfaz IoT operativa",
+            "Máquina o proceso automatizado controlado y conectado a servidor IoT con un sistema embebido.",
+            "Informe de comisionamiento."
+          ],
+          "criterios": []
+        }
+      ]
+    }
+  },
+  "evidencias": [
+    {
+      "fase": "FASE 5: \nCONTROL PROGRAMABLE",
+      "actividad_proyecto": "AUTOMATIZAR SISTEMA MECATRÓNICO CON PROCESOS SECUENCIALES Y CONTINUOS, MEDIANTE EQUIPOS DE CONTROL",
+      "actividad_aprendizaje": "Implementar el circuito de acondicionamiento e interfaz de sensores y actuadores, integrando un sistema embebido bajo las especificaciones técnicas de la máquina. (48H)",
+      "evidencia": "Ev1. Sistema de diagnóstico de sensores y actuadores para una máquina o proceso controlado con un sistema embebido. \nEv2. Informe del diseño y la simulación del sistema según indicaciones del instructor.",
+      "criterios": "SELECCIONA EL SISTEMA EMBEBIDO SEGÚN REQUERIMIENTOS TÉCNICOS DEL SISTEMA.  \n\nDEFINE LA ESTRUCTURA Y CARACTERÍSTICAS DEL SISTEMA EMBEBIDO SEGÚN NECESIDADES DEL PROYECTO. \n\nDESARROLLA EL PROGRAMA DE CONTROL DEL SISTEMA EMBEBIDO SEGÚN LENGUAJE DE PROGRAMACIÓN Y PROGRAMAS DE COMPILACIÓN.      \n\nSIMULA EL FUNCIONAMIENTO DEL SISTEMA EMBEBIDO SEGÚN PROGRAMAS Y ESPECIFICACIONES DE FUNCIONAMIENTO  \n\nREALIZA LA CONEXIÓN DEL SISTEMA EMBEBIDO SEGÚN NECESIDADES DE DISEÑO Y TECNICAS DE MONTAJE.      \n\nDOCUMENTA LA PROGRAMACIÓN DEL SISTEMA EMBEBIDO SEGÚN  REQUERIMIENTOS TÉCNICOS.",
+      "tecnicas": "Técnicas:"
+    },
+    {
+      "fase": "FASE 5: \nCONTROL PROGRAMABLE",
+      "actividad_proyecto": "AUTOMATIZAR SISTEMA MECATRÓNICO CON PROCESOS SECUENCIALES Y CONTINUOS, MEDIANTE EQUIPOS DE CONTROL",
+      "actividad_aprendizaje": "Comisionar la máquina o proceso automatizado controlado por sistema embebido según requerimientos del cliente. (20H)",
+      "evidencia": "Ev3. Máquina o proceso automatizado controlado con un sistema embebido. \nEv4. Informe del diseño y la simulación del sistema según indicaciones del instructor.",
+      "criterios": "SELECCIONA EL SISTEMA EMBEBIDO SEGÚN REQUERIMIENTOS TÉCNICOS DEL SISTEMA.  \n\nDEFINE LA ESTRUCTURA Y CARACTERÍSTICAS DEL SISTEMA EMBEBIDO SEGÚN NECESIDADES DEL PROYECTO. \n\nDESARROLLA EL PROGRAMA DE CONTROL DEL SISTEMA EMBEBIDO SEGÚN LENGUAJE DE PROGRAMACIÓN Y PROGRAMAS DE COMPILACIÓN.      \n\nSIMULA EL FUNCIONAMIENTO DEL SISTEMA EMBEBIDO SEGÚN PROGRAMAS Y ESPECIFICACIONES DE FUNCIONAMIENTO  \n\nREALIZA LA CONEXIÓN DEL SISTEMA EMBEBIDO SEGÚN NECESIDADES DE DISEÑO Y TECNICAS DE MONTAJE.      \n\nDOCUMENTA LA PROGRAMACIÓN DEL SISTEMA EMBEBIDO SEGÚN  REQUERIMIENTOS TÉCNICOS.",
+      "tecnicas": ""
+    },
+    {
+      "fase": "FASE 5: \nCONTROL PROGRAMABLE",
+      "actividad_proyecto": "AUTOMATIZAR SISTEMA MECATRÓNICO CON PROCESOS SECUENCIALES Y CONTINUOS, MEDIANTE EQUIPOS DE CONTROL",
+      "actividad_aprendizaje": "Conectar la máquina o proceso automatizado controlado por sistema embebido a una red IoT según especificaciones técnicas. (28H)",
+      "evidencia": "Ev5. Interfaz IoT operativa \nEv6. Máquina o proceso automatizado controlado y conectado a servidor IoT con un sistema embebido. \nEv7. Informe de comisionamiento.",
+      "criterios": "SELECCIONA EL SISTEMA EMBEBIDO SEGÚN REQUERIMIENTOS TÉCNICOS DEL SISTEMA.  \n\nDEFINE LA ESTRUCTURA Y CARACTERÍSTICAS DEL SISTEMA EMBEBIDO SEGÚN NECESIDADES DEL PROYECTO. \n\nDESARROLLA EL PROGRAMA DE CONTROL DEL SISTEMA EMBEBIDO SEGÚN LENGUAJE DE PROGRAMACIÓN Y PROGRAMAS DE COMPILACIÓN.      \n\nSIMULA EL FUNCIONAMIENTO DEL SISTEMA EMBEBIDO SEGÚN PROGRAMAS Y ESPECIFICACIONES DE FUNCIONAMIENTO  \n\nREALIZA LA CONEXIÓN DEL SISTEMA EMBEBIDO SEGÚN NECESIDADES DE DISEÑO Y TECNICAS DE MONTAJE.      \n\nDOCUMENTA LA PROGRAMACIÓN DEL SISTEMA EMBEBIDO SEGÚN  REQUERIMIENTOS TÉCNICOS.",
+      "tecnicas": ""
+    }
+  ],
+  "glosario": [],
+  "referencias": [
+    "Construya o cite documentos de apoyo para el desarrollo de la guía, según lo establecido en la guía de desarrollo curricular. (BIBLIOGRAFÍA / WEBGRAFÍA)."
+  ],
+  "control_documento": {
+    "autores": [
+      {
+        "nombre": "Héctor Helí Ruiz Garcia",
+        "cargo": "Instructor",
+        "dependencia": "Centro Metalmecánico",
+        "fecha": "Agosto 2026"
+      }
+    ]
+  },
+  "control_cambios": [
+    {
+      "nombre": "",
+      "cargo": "",
+      "dependencia": "",
+      "fecha": "",
+      "razon": ""
+    }
+  ]
+}
