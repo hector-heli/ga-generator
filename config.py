@@ -6,6 +6,7 @@ BASE_DIR = Path(__file__).resolve().parent
 TEMPLATE_PATH = BASE_DIR / "templates_ga" / "GA_GFPI-F-135_plantilla.docx"
 OUTPUT_DIR = BASE_DIR / "output"
 DRAFT_DIR = BASE_DIR / "data" / "drafts"
+GUIDES_DB = BASE_DIR / "data" / "guides.sqlite3"
 CONTENT_BANK_DIR = BASE_DIR / "data" / "content_bank"
 SAMPLE_PATH = BASE_DIR / "data" / "sample_rae23.json"
 CONFIG_PATH = BASE_DIR / "config.json"

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_forms.html" import field, csrf %}
+
+{% block title %}Configuración de IA · Generador SENA{% endblock %}
+
+{% block content %}
+<div class="page-head">
+<div>
+<p class="eyebrow">Configuración</p>
+<h1>Asistente de redacción (IA)</h1>
+<p class="lead">El autocompletado funciona con plantillas locales. Si configura un proveedor compatible con OpenAI, también podrá redactar contenidos con IA.</p>
+</div>
+<div class="page-head__actions">
+<a class="btn btn-secondary" href="{{ url_for('index') }}">Volver al panel</a>
+</div>
+</div>
+
+<div class="narrow">
+<section class="panel">
+<div class="panel__head">
+<h2>Proveedor LLM</h2>
+{% if app_config.llm.has_api_key %}
+<span class="status-pill status-pill--done">Clave configurada</span>
+{% else %}
+<span class="status-pill status-pill--empty">Sin clave</span>
+{% endif %}
+</div>
+<form method="post" action="{{ url_for('settings') }}" class="stack">
+{{ csrf() }}
+<label class="check">
+<input type="checkbox" name="llm_enabled" {% if app_config.llm.enabled %}checked{% endif %}/>
+Habilitar el uso de IA en el autocompletado
+</label>
+{{ field("Base URL", "base_url", app_config.llm.base_url, placeholder="https://api.openai.com/v1") }}
+{{ field("Modelo", "model", app_config.llm.model, placeholder="gpt-4o-mini") }}
+{{ field("API key", "api_key", "", type="password", hint="Se conserva la clave actual si deja este campo vacío.") }}
+<button class="btn btn-primary" type="submit">Guardar configuración</button>
+</form>
+</section>
+
+<section class="panel">
+<div class="panel__head">
+<h2>Probar conexión</h2>
+</div>
+<p class="hint">Se enviará una petición mínima al proveedor configurado. Si la IA está deshabilitada o falla, el generador seguirá usando las plantillas locales.</p>
+<form method="post" action="{{ url_for('settings_test') }}">
+{{ csrf() }}
+<button class="btn btn-secondary" type="submit">Probar conexión</button>
+</form>
+</section>
+</div>
+{% endblock %}

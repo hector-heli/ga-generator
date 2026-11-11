@@ -198,6 +198,10 @@ def _clean_activity(activity, moment_id, index):
             activity["titulo"] = str(original["titulo"]).strip()
         else:
             activity["titulo"] = suggested.get("titulo", title)
+    if not str(activity.get("titulo") or "").strip():
+        activity["titulo"] = suggest_activity(
+            {"identificacion": {}, "momentos": {}}, moment_id, index
+        ).get("titulo", "")
 
 
 def import_docx(path):

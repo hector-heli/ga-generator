@@ -1,0 +1,26 @@
+{% from "_forms.html" import status_badge %}
+
+{% macro page_head(eyebrow, title, description, key, nav) %}
+{% set status = nav.statuses.get(key) %}
+{% if status is none %}
+{% set status = "done" if nav.progress == 100 else ("partial" if nav.progress > 0 else "empty") %}
+{% endif %}
+<div class="page-head">
+<div>
+<p class="eyebrow">{{ eyebrow }}</p>
+<h1>{{ title }}</h1>
+{% if description %}<p class="lead">{{ description }}</p>{% endif %}
+</div>
+<div class="page-head__status">
+{{ status_badge(status) }}
+</div>
+</div>
+{% endmacro %}
+
+{% macro guide_meta(summary) %}
+<div class="context-strip">
+<span><strong>{{ summary.rae }}</strong></span>
+<span>{{ summary.programa or "Programa sin definir" }}</span>
+<span>{{ summary.computed_hours | horas }} h en actividades</span>
+</div>
+{% endmacro %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% from "_forms.html" import csrf %}
+{% from "_guide_ui.html" import page_head, guide_meta %}
+
+{% block title %}Presentación · {{ summary.rae }}{% endblock %}
+
+{% block content %}
+{{ page_head("Sección 2", "Presentación", "Mensaje de bienvenida y proyección del aprendiz. Puede combinar párrafos, subtítulos y listas.", "presentacion", nav) }}
+{{ guide_meta(summary) }}
+
+<form method="post" action="{{ url_for('guide_presentacion', guide_id=guide_id) }}" class="stack">
+{{ csrf() }}
+<button class="sr-only" type="submit" name="action" value="save" tabindex="-1" aria-hidden="true">Guardar</button>
+<input type="hidden" name="block_order" value="{{ guide.presentacion.bloques | map(attribute='uid') | join(',') }}"/>
+
+<section class="panel">
+<div class="panel__head">
+<h2>Bloques de la presentación</h2>
+<span class="count">{{ guide.presentacion.bloques | length }}</span>
+</div>
+
+{% if guide.presentacion.bloques %}
+<div class="repeat-list">
+{% for block in guide.presentacion.bloques %}
+<article class="repeat-card">
+<div class="repeat-card__head">
+<span class="repeat-card__index">{{ loop.index }}</span>
+<div class="repeat-card__actions">
+<button class="btn btn-ghost btn-small" type="submit" name="action" value="up:{{ block.uid }}"{% if loop.first %} disabled{% endif %} title="Subir">↑</button>
+<button class="btn btn-ghost btn-small" type="submit" name="action" value="down:{{ block.uid }}"{% if loop.last %} disabled{% endif %} title="Bajar">↓</button>
+<button class="btn btn-ghost btn-small btn-danger" type="submit" name="action" value="delete:{{ block.uid }}" title="Eliminar">Eliminar</button>
+</div>
+</div>
+<div class="field-grid field-grid--block">
+<label class="field">
+<span class="field__label">Tipo de bloque</span>
+<select name="block.{{ block.uid }}.tipo">
+<option value="parrafo"{% if block.tipo == "parrafo" %} selected{% endif %}>Párrafo</option>
+<option value="subtitulo"{% if block.tipo == "subtitulo" %} selected{% endif %}>Subtítulo</option>
+<option value="lista"{% if block.tipo == "lista" %} selected{% endif %}>Elemento de lista</option>
+</select>
+</label>
+<label class="field">
+<span class="field__label">Texto</span>
+<textarea name="block.{{ block.uid }}.texto" rows="{{ 2 if block.tipo == 'subtitulo' else 4 }}">{{ block.texto }}</textarea>
+</label>
+</div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+<p class="empty-state__title">La presentación está vacía.</p>
+<p>Agregue un bloque o use el autocompletado para partir de una plantilla.</p>
+</div>
+{% endif %}
+</section>
+
+<div class="form-actions form-actions--spread">
+<div class="actions-inline">
+<button class="btn btn-primary" type="submit" name="action" value="save">Guardar presentación</button>
+<button class="btn btn-secondary" type="submit" name="action" value="add">Agregar bloque</button>
+</div>
+<div class="actions-inline">
+<label class="check"><input type="checkbox" name="usar_ia" value="on"/> Usar IA</label>
+<button class="btn btn-secondary" type="submit" name="action" value="suggest">Autocompletar presentación</button>
+<a class="btn btn-ghost" href="{{ url_for('guide_momentos', guide_id=guide_id) }}">Ir a momentos →</a>
+</div>
+</div>
+</form>
+{% endblock %}

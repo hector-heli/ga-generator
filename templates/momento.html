@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% from "_forms.html" import field, textarea, csrf, section_feedback %}
+{% from "_guide_ui.html" import page_head, guide_meta %}
+
+{% block title %}{{ moment_meta.label }} · {{ summary.rae }}{% endblock %}
+
+{% block content %}
+{{ page_head("Sección 3 · Momentos", moment_meta.label, moment_meta.titulo, "momentos/" ~ moment_id, nav) }}
+{{ guide_meta(summary) }}
+{{ section_feedback(validation, "momentos/" ~ moment_id) }}
+
+<form method="post" action="{{ url_for('guide_moment', guide_id=guide_id, moment_id=moment_id) }}" class="stack">
+{{ csrf() }}
+<button class="sr-only" type="submit" name="action" value="save" tabindex="-1" aria-hidden="true">Guardar</button>
+<input type="hidden" name="activity_order" value="{{ moment.actividades | map(attribute='uid') | join(',') }}"/>
+
+{% if moment.actividades %}
+<div class="repeat-list">
+{% for activity in moment.actividades %}
+<article class="repeat-card activity-card">
+<div class="repeat-card__head">
+<div class="repeat-card__title">
+<span class="repeat-card__index">{{ loop.index }}</span>
+<strong>{{ activity.titulo or "Actividad sin título" }}</strong>
+<span class="muted">{{ activity.duracion_horas | horas }} h</span>
+</div>
+<div class="repeat-card__actions">
+<button class="btn btn-ghost btn-small" type="submit" name="action" value="up:{{ activity.uid }}"{% if loop.first %} disabled{% endif %} title="Subir actividad">↑</button>
+<button class="btn btn-ghost btn-small" type="submit" name="action" value="down:{{ activity.uid }}"{% if loop.last %} disabled{% endif %} title="Bajar actividad">↓</button>
+<button class="btn btn-ghost btn-small" type="submit" name="action" value="suggest:{{ activity.uid }}" title="Autocompletar esta actividad">Autocompletar</button>
+<button class="btn btn-ghost btn-small btn-danger" type="submit" name="action" value="delete:{{ activity.uid }}" title="Eliminar actividad">Eliminar</button>
+</div>
+</div>
+
+<div class="field-grid">
+{{ field("Título de la actividad", "act." ~ activity.uid ~ ".titulo", activity.titulo) }}
+{{ field("Duración (h)", "act." ~ activity.uid ~ ".duracion_horas", activity.duracion_horas, type="number", step="0.5", min="0") }}
+{{ field("Ambiente requerido", "act." ~ activity.uid ~ ".ambiente", activity.ambiente, placeholder="Ambiente, taller o laboratorio") }}
+<label class="field">
+<span class="field__label">Modalidad</span>
+<select name="act.{{ activity.uid }}.modalidad">
+{% for option in ("Grupal", "Individual", "Mixta") %}
+<option value="{{ option }}"{% if activity.modalidad == option %} selected{% endif %}>{{ option }}</option>
+{% endfor %}
+</select>
+</label>
+</div>
+
+{{ textarea("Introducción", "act." ~ activity.uid ~ ".introduccion", activity.introduccion, rows=3, hint="Contextualice la actividad y su propósito.") }}
+{{ textarea("Estrategias o técnicas didácticas activas", "act." ~ activity.uid ~ ".estrategias", activity.estrategias, rows=2) }}
+
+<div class="field-grid">
+{{ textarea("Instrucciones", "act." ~ activity.uid ~ ".instrucciones", activity.instrucciones | lineas, rows=4, hint="Una instrucción por línea.") }}
+{{ textarea("Preguntas para el debate", "act." ~ activity.uid ~ ".debate", activity.debate | lineas, rows=4, hint="Una pregunta por línea.") }}
+</div>
+
+<div class="field-grid">
+{{ textarea("Evidencias de aprendizaje", "act." ~ activity.uid ~ ".evidencias", activity.evidencias | lineas, rows=4, hint="Una evidencia por línea. Obligatoria en apropiación y transferencia.") }}
+{{ textarea("Criterios de evaluación", "act." ~ activity.uid ~ ".criterios", activity.criterios | lineas, rows=4, hint="Un criterio por línea.") }}
+</div>
+
+{{ textarea("Instrumentos de evaluación", "act." ~ activity.uid ~ ".instrumentos", activity.instrumentos | lineas, rows=3, hint="Un instrumento por línea.") }}
+
+<fieldset class="fieldset">
+<legend>Materiales de formación</legend>
+<div class="field-grid">
+{{ field("Consumible", "act." ~ activity.uid ~ ".materiales.consumible", activity.materiales.consumible) }}
+{{ field("Devolutivo", "act." ~ activity.uid ~ ".materiales.devolutivo", activity.materiales.devolutivo) }}
+{{ field("Material de apoyo", "act." ~ activity.uid ~ ".materiales.apoyo", activity.materiales.apoyo) }}
+</div>
+</fieldset>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+<p class="empty-state__title">Este momento no tiene actividades.</p>
+<p>Agregue la primera actividad para comenzar a diligenciarlo.</p>
+</div>
+{% endif %}
+
+<div class="form-actions form-actions--spread">
+<div class="actions-inline">
+<button class="btn btn-primary" type="submit" name="action" value="save">Guardar momento</button>
+<button class="btn btn-secondary" type="submit" name="action" value="add">Agregar actividad</button>
+</div>
+<div class="actions-inline">
+<label class="check"><input type="checkbox" name="usar_ia" value="on"/> Usar IA al autocompletar</label>
+<a class="btn btn-ghost" href="{{ url_for('guide_momentos', guide_id=guide_id) }}">Volver a momentos</a>
+</div>
+</div>
+</form>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_forms.html" import status_badge %}
+{% from "_guide_ui.html" import page_head, guide_meta %}
+
+{% block title %}Momentos · {{ summary.rae }}{% endblock %}
+
+{% block content %}
+{{ page_head("Sección 3", "Momentos de formación", "Formule las actividades de reflexión, contextualización, apropiación y transferencia. Cada momento admite varias actividades.", "momentos", nav) }}
+{{ guide_meta(summary) }}
+
+<div class="moment-grid">
+{% for moment_id, moment in guide.momentos.items() %}
+{% set key = "momentos/" ~ moment_id %}
+{% set report = validation.sections.get(key, {}) %}
+{% set count = moment.actividades | length %}
+{% set hours = moment.actividades | sum(attribute="duracion_horas") %}
+<article class="moment-card moment-card--{{ moment_id }}">
+<div class="moment-card__head">
+<span class="moment-card__dot" aria-hidden="true"></span>
+<h2>{{ moment.titulo }}</h2>
+{{ status_badge(nav.statuses.get(key, "empty")) }}
+</div>
+<dl class="meta-list meta-list--compact">
+<div><dt>Actividades</dt><dd>{{ count }}</dd></div>
+<div><dt>Horas</dt><dd>{{ hours | horas }} h</dd></div>
+</dl>
+{% if report.errors %}
+<p class="inline-note inline-note--err">{{ report.errors | length }} aspecto(s) por corregir.</p>
+{% elif report.warnings %}
+<p class="inline-note inline-note--warn">{{ report.warnings | length }} recomendación(es).</p>
+{% else %}
+<p class="inline-note inline-note--ok">Sin observaciones pendientes.</p>
+{% endif %}
+<a class="btn btn-secondary btn-block" href="{{ url_for('guide_moment', guide_id=guide_id, moment_id=moment_id) }}">Editar momento</a>
+</article>
+{% endfor %}
+</div>
+
+<div class="panel panel--muted">
+<h2>Evidencias y matriz</h2>
+<p class="hint">Las actividades de apropiación y transferencia requieren al menos una evidencia. La matriz de evidencias se construye automáticamente con las evidencias, criterios e instrumentos de cada actividad.</p>
+<dl class="meta-list">
+<div><dt>Actividades totales</dt><dd>{{ summary.activity_count }}</dd></div>
+<div><dt>Evidencias registradas</dt><dd>{{ summary.evidence_count }}</dd></div>
+<div><dt>Horas en actividades</dt><dd>{{ summary.computed_hours | horas }} h</dd></div>
+</dl>
+<a class="btn btn-ghost" href="{{ url_for('guide_resumen', guide_id=guide_id) }}">Ver resumen y validación →</a>
+</div>
+{% endblock %}

@@ -1,7 +1,25 @@
 import copy
 import re
+import uuid
 
 MOMENT_ORDER = ["reflexion_inicial", "contextualizacion", "apropiacion", "transferencia"]
+
+_UID_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
+
+
+def new_uid():
+    """Return a short, URL- and form-safe identifier."""
+    return uuid.uuid4().hex[:12]
+
+
+def as_uid(value):
+    """Keep a valid identifier or create a new one for legacy/imported data."""
+    text = str(value or "").strip()
+    return text if _UID_RE.fullmatch(text) else new_uid()
+
+
+def _presentation_block(tipo, texto):
+    return {"uid": new_uid(), "tipo": tipo, "texto": texto}
 
 MOMENTS = {
     "reflexion_inicial": {
@@ -35,6 +53,7 @@ def empty_activity(moment_id="apropiacion", index=0):
         "transferencia": "Integrar el sistema a una red IoT",
     }
     return {
+        "uid": new_uid(),
         "titulo": titles.get(moment_id, "Actividad de aprendizaje"),
         "introduccion": "",
         "instrucciones": [],
@@ -72,10 +91,10 @@ def empty_guide():
         },
         "presentacion": {
             "bloques": [
-                {"tipo": "parrafo", "texto": "Estimado Aprendiz:"},
-                {"tipo": "parrafo", "texto": ""},
-                {"tipo": "subtitulo", "texto": "Alineación con su perfil y proyección profesional"},
-                {"tipo": "parrafo", "texto": ""},
+                _presentation_block("parrafo", "Estimado Aprendiz:"),
+                _presentation_block("parrafo", ""),
+                _presentation_block("subtitulo", "Alineación con su perfil y proyección profesional"),
+                _presentation_block("parrafo", ""),
             ]
         },
         "momentos": {
@@ -138,6 +157,7 @@ def _as_hours(value):
 def _normalize_activity(raw, moment_id, index):
     base = empty_activity(moment_id, index)
     raw = raw if isinstance(raw, dict) else {}
+    base["uid"] = as_uid(raw.get("uid"))
     for key in ("titulo", "introduccion", "ambiente", "estrategias", "modalidad"):
         if key in raw:
             base[key] = _as_text(raw[key])
@@ -150,8 +170,6 @@ def _normalize_activity(raw, moment_id, index):
     elif raw.get("materiales"):
         base["materiales"]["consumible"] = _as_text(raw["materiales"])
     base["duracion_horas"] = _as_hours(raw.get("duracion_horas", base["duracion_horas"]))
-    if not base["titulo"]:
-        base["titulo"] = empty_activity(moment_id, index)["titulo"]
     return base
 
 
@@ -183,14 +201,19 @@ def normalize_guide(raw):
         blocks = []
         for block in presentation["bloques"]:
             if isinstance(block, str):
-                blocks.append({"tipo": "parrafo", "texto": block})
+                blocks.append(_presentation_block("parrafo", block))
             elif isinstance(block, dict):
                 tipo = _as_text(block.get("tipo", "parrafo")).lower()
                 if tipo not in ("parrafo", "subtitulo", "lista"):
                     tipo = "parrafo"
-                blocks.append({"tipo": tipo, "texto": _as_text(block.get("texto"))})
-        if blocks:
-            base["presentacion"]["bloques"] = blocks
+                blocks.append(
+                    {
+                        "uid": as_uid(block.get("uid")),
+                        "tipo": tipo,
+                        "texto": _as_text(block.get("texto")),
+                    }
+                )
+        base["presentacion"]["bloques"] = blocks
 
     moments = raw.get("momentos")
     if isinstance(moments, dict):
@@ -201,12 +224,11 @@ def normalize_guide(raw):
             activities = source.get("actividades")
             if activities is None and source.get("titulo") and not isinstance(source.get("titulo"), dict):
                 activities = source
-            normalized = [
-                _normalize_activity(activity, moment_id, index)
-                for index, activity in enumerate(_as_list(activities))
-            ]
-            if normalized:
-                base["momentos"][moment_id]["actividades"] = normalized
+            if activities is not None:
+                base["momentos"][moment_id]["actividades"] = [
+                    _normalize_activity(activity, moment_id, index)
+                    for index, activity in enumerate(_as_list(activities))
+                ]
             if source.get("titulo"):
                 base["momentos"][moment_id]["titulo"] = _as_text(source["titulo"])
 

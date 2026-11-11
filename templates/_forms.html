@@ -1,0 +1,45 @@
+{% macro field(label, name, value="", type="text", required=False, hint="", placeholder="", step=None, min=None, max=None) %}
+<label class="field">
+<span class="field__label">{{ label }}{% if required %} <span class="req" aria-hidden="true">*</span>{% endif %}</span>
+<input type="{{ type }}" name="{{ name }}" value="{{ value if value is not none else '' }}"{% if required %} required{% endif %}{% if placeholder %} placeholder="{{ placeholder }}"{% endif %}{% if step %} step="{{ step }}"{% endif %}{% if min is not none %} min="{{ min }}"{% endif %}{% if max is not none %} max="{{ max }}"{% endif %}/>
+{% if hint %}<span class="field__hint">{{ hint }}</span>{% endif %}
+</label>
+{% endmacro %}
+
+{% macro textarea(label, name, value="", hint="", rows=4, placeholder="") %}
+<label class="field">
+<span class="field__label">{{ label }}</span>
+<textarea name="{{ name }}" rows="{{ rows }}"{% if placeholder %} placeholder="{{ placeholder }}"{% endif %}>{{ value if value is not none else '' }}</textarea>
+{% if hint %}<span class="field__hint">{{ hint }}</span>{% endif %}
+</label>
+{% endmacro %}
+
+{% macro select(label, name, value, options, hint="") %}
+<label class="field">
+<span class="field__label">{{ label }}</span>
+<select name="{{ name }}">
+{% for option_value, option_label in options %}
+<option value="{{ option_value }}"{% if value == option_value %} selected{% endif %}>{{ option_label }}</option>
+{% endfor %}
+</select>
+{% if hint %}<span class="field__hint">{{ hint }}</span>{% endif %}
+</label>
+{% endmacro %}
+
+{% macro section_feedback(validation, key) %}
+{% set report = validation.sections.get(key, {}) %}
+{% if report.errors or report.warnings %}
+<div class="feedback">
+{% for error in report.errors %}<p class="msg err">{{ error }}</p>{% endfor %}
+{% for warning in report.warnings %}<p class="msg warn">{{ warning }}</p>{% endfor %}
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro status_badge(status) %}
+<span class="status-pill status-pill--{{ status }}">{{ STATUS_LABELS[status] }}</span>
+{% endmacro %}
+
+{% macro csrf() %}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+{% endmacro %}

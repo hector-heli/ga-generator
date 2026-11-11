@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% from "_forms.html" import field, csrf, section_feedback %}
+{% from "_guide_ui.html" import page_head, guide_meta %}
+
+{% block title %}Control del documento · {{ summary.rae }}{% endblock %}
+
+{% block content %}
+{{ page_head("Sección 6", "Control del documento", "Registre los autores de la guía y, si realiza ajustes, los cambios efectuados.", "control", nav) }}
+{{ guide_meta(summary) }}
+{{ section_feedback(validation, "control") }}
+
+<form method="post" action="{{ url_for('guide_control', guide_id=guide_id) }}" class="stack">
+{{ csrf() }}
+<button class="sr-only" type="submit" name="action" value="save" tabindex="-1" aria-hidden="true">Guardar</button>
+
+<section class="panel">
+<div class="panel__head">
+<h2>Autor (es)</h2>
+<span class="count">{{ guide.control_documento.autores | length }}</span>
+</div>
+<div class="repeat-list">
+{% for author in guide.control_documento.autores %}
+<article class="repeat-card">
+<div class="repeat-card__head">
+<span class="repeat-card__index">{{ loop.index }}</span>
+<button class="btn btn-ghost btn-small btn-danger" type="submit" name="action" value="delete_autor:{{ loop.index0 }}">Eliminar autor</button>
+</div>
+<div class="field-grid">
+{{ field("Nombre", "autor." ~ loop.index0 ~ ".nombre", author.nombre) }}
+{{ field("Cargo", "autor." ~ loop.index0 ~ ".cargo", author.cargo) }}
+{{ field("Dependencia", "autor." ~ loop.index0 ~ ".dependencia", author.dependencia) }}
+{{ field("Fecha", "autor." ~ loop.index0 ~ ".fecha", author.fecha, type="date") }}
+</div>
+</article>
+{% endfor %}
+</div>
+<div class="form-actions">
+<button class="btn btn-secondary" type="submit" name="action" value="add_autor">Agregar autor</button>
+</div>
+</section>
+
+<section class="panel">
+<div class="panel__head">
+<h2>Control de cambios</h2>
+<span class="count">{{ guide.control_cambios | length }}</span>
+</div>
+<p class="hint">Diligencie únicamente si realiza ajustes a una guía ya publicada.</p>
+{% if guide.control_cambios %}
+<div class="repeat-list">
+{% for change in guide.control_cambios %}
+<article class="repeat-card">
+<div class="repeat-card__head">
+<span class="repeat-card__index">{{ loop.index }}</span>
+<button class="btn btn-ghost btn-small btn-danger" type="submit" name="action" value="delete_cambio:{{ loop.index0 }}">Eliminar registro</button>
+</div>
+<div class="field-grid">
+{{ field("Nombre", "cambio." ~ loop.index0 ~ ".nombre", change.nombre) }}
+{{ field("Cargo", "cambio." ~ loop.index0 ~ ".cargo", change.cargo) }}
+{{ field("Dependencia", "cambio." ~ loop.index0 ~ ".dependencia", change.dependencia) }}
+{{ field("Fecha", "cambio." ~ loop.index0 ~ ".fecha", change.fecha, type="date") }}
+{{ field("Razón del cambio", "cambio." ~ loop.index0 ~ ".razon", change.razon) }}
+</div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+<p class="empty-state__title">Sin cambios registrados.</p>
+<p>Esto es normal si la guía es nueva.</p>
+</div>
+{% endif %}
+<div class="form-actions">
+<button class="btn btn-secondary" type="submit" name="action" value="add_cambio">Agregar registro de cambio</button>
+</div>
+</section>
+
+<div class="form-actions">
+<button class="btn btn-primary" type="submit" name="action" value="save">Guardar control del documento</button>
+<a class="btn btn-ghost" href="{{ url_for('guide_resumen', guide_id=guide_id) }}">Ir al resumen →</a>
+</div>
+</form>
+{% endblock %}

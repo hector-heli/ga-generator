@@ -30,6 +30,7 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(app_module, "OUTPUT_DIR", output_dir)
     monkeypatch.setattr(app_module, "DRAFT_DIR", draft_dir)
     monkeypatch.setattr(config_module, "CONFIG_PATH", tmp_path / "config.json")
+    monkeypatch.setattr(config_module, "GUIDES_DB", tmp_path / "guides.sqlite3")
     app_module.app.config.update(TESTING=True)
     with app_module.app.test_client() as test_client:
         yield test_client

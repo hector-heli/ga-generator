@@ -1,0 +1,28 @@
+<div class="sidebar__head">
+<a class="sidebar__back" href="{{ url_for('index') }}">← Todas las guías</a>
+<p class="sidebar__eyebrow">Guía en edición</p>
+<p class="sidebar__title">{{ summary.rae }}</p>
+<p class="sidebar__subtitle">{{ summary.programa or summary.resultado or "Sin identificar" }}</p>
+<div class="progress" role="img" aria-label="{{ nav.progress }}% de secciones completas">
+<span class="progress__bar" style="width: {{ nav.progress }}%"></span>
+</div>
+<p class="sidebar__meta">{{ nav.done }} de {{ nav.total }} secciones completas</p>
+</div>
+
+<nav class="sidebar__nav">
+{% for item in nav.entries %}
+{% if item.heading %}
+<p class="sidebar__group">{{ item.heading }}</p>
+{% else %}
+<a class="sidebar__link{% if item.active %} is-active{% endif %}" href="{{ item.href }}"{% if item.active %} aria-current="page"{% endif %}>
+<span class="status-dot status-dot--{{ item.status }}" title="{{ STATUS_LABELS[item.status] }}" aria-hidden="true"></span>
+<span class="sidebar__label">{{ item.label }}</span>
+{% if item.hint %}<span class="sidebar__hint">{{ item.hint }}</span>{% endif %}
+</a>
+{% endif %}
+{% endfor %}
+</nav>
+
+<div class="sidebar__foot">
+<a class="btn btn-primary btn-block" href="{{ url_for('guide_resumen', guide_id=guide_id) }}">Revisar y generar</a>
+</div>

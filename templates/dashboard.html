@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% from "_forms.html" import field, csrf, status_badge %}
+
+{% block title %}Guías de aprendizaje · Generador SENA{% endblock %}
+
+{% block content %}
+<div class="page-head">
+<div>
+<p class="eyebrow">Panel de trabajo</p>
+<h1>Guías de aprendizaje</h1>
+<p class="lead">Cree una guía, avance por sus secciones y genere el documento Word o PDF con la plantilla GFPI-F-135.</p>
+</div>
+<div class="page-head__actions">
+<a class="btn btn-secondary" href="{{ url_for('settings') }}">Configuración IA</a>
+<a class="btn btn-primary" href="#nueva-guia">Nueva guía</a>
+</div>
+</div>
+
+<div class="dashboard-grid">
+<section class="panel">
+<div class="panel__head">
+<h2>Guías registradas</h2>
+<span class="count">{{ guides | length }}</span>
+</div>
+
+{% if guides %}
+<div class="guide-list">
+{% for item in guides %}
+{% set progress = item.nav.progress %}
+<article class="guide-card">
+<div class="guide-card__main">
+<div class="guide-card__title-row">
+<h3><a href="{{ url_for('guide_identificacion', guide_id=item.id) }}">{{ item.summary.title }}</a></h3>
+{% if progress == 100 %}
+{{ status_badge("done") }}
+{% elif progress > 0 %}
+{{ status_badge("partial") }}
+{% else %}
+{{ status_badge("empty") }}
+{% endif %}
+</div>
+<p class="guide-card__subtitle">{{ item.summary.subtitle }}</p>
+<dl class="meta-list">
+<div><dt>Código</dt><dd>{{ item.summary.codigo or "—" }}</dd></div>
+<div><dt>Horas</dt><dd>{{ item.summary.computed_hours | horas }} h</dd></div>
+<div><dt>Actividades</dt><dd>{{ item.summary.activity_count }}</dd></div>
+<div><dt>Actualizada</dt><dd>{{ item.updated_at | fecha }}</dd></div>
+</dl>
+<div class="progress progress--small" role="img" aria-label="{{ progress }}% completo">
+<span class="progress__bar" style="width: {{ progress }}%"></span>
+</div>
+</div>
+<div class="guide-card__actions">
+<a class="btn btn-secondary" href="{{ url_for('guide_identificacion', guide_id=item.id) }}">Abrir guía</a>
+<a class="btn btn-ghost" href="{{ url_for('guide_resumen', guide_id=item.id) }}">Resumen</a>
+<form method="post" action="{{ url_for('guide_delete', guide_id=item.id) }}" onsubmit="return confirm('¿Eliminar esta guía de forma permanente?');">
+{{ csrf() }}
+<button class="btn btn-ghost btn-danger" type="submit">Eliminar</button>
+</form>
+</div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+<p class="empty-state__title">Todavía no hay guías.</p>
+<p>Cree la primera con el formulario de la derecha o importe un documento existente.</p>
+</div>
+{% endif %}
+</section>
+
+<div class="stack">
+<section class="panel" id="nueva-guia">
+<div class="panel__head">
+<h2>Nueva guía</h2>
+</div>
+<form method="post" action="{{ url_for('guide_new') }}" class="stack">
+{{ csrf() }}
+{{ field("Denominación del programa", "programa", "", placeholder="Ej. Automatización de sistemas mecatrónicos") }}
+{{ field("Código del programa", "codigo_programa", "", placeholder="Ej. 224312") }}
+{{ field("Resultados de aprendizaje", "resultados_aprendizaje", "", placeholder="Ej. RAE23 · Implementar sistemas mecatrónicos") }}
+<div class="field-grid field-grid--two">
+{{ field("Duración total (h)", "duracion_horas", "0", type="number", step="0.5", min="0") }}
+</div>
+<button class="btn btn-primary btn-block" type="submit">Crear y comenzar</button>
+</form>
+</section>
+
+<section class="panel">
+<div class="panel__head">
+<h2>Importar documento</h2>
+</div>
+<form method="post" action="{{ url_for('guide_import') }}" enctype="multipart/form-data" class="stack">
+{{ csrf() }}
+<label class="field">
+<span class="field__label">Archivo de origen</span>
+<input type="file" name="file" accept=".docx,.xlsx,.xlsm,.pdf" required/>
+<span class="field__hint">DOCX, XLSX o PDF. Después de importar podrá revisar cada sección.</span>
+</label>
+<button class="btn btn-secondary btn-block" type="submit">Importar como guía</button>
+</form>
+</section>
+
+<section class="panel panel--muted">
+<h2>Flujo recomendado</h2>
+<ol class="steps">
+<li><strong>Identifique</strong> el programa, la competencia y los resultados.</li>
+<li><strong>Formule</strong> los cuatro momentos, con una o varias actividades.</li>
+<li><strong>Complete</strong> evidencias, criterios, glosario y referentes.</li>
+<li><strong>Revise</strong> el resumen y genere el documento.</li>
+</ol>
+</section>
+</div>
+</div>
+{% endblock %}

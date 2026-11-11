@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "_forms.html" import csrf, section_feedback %}
+{% from "_guide_ui.html" import page_head, guide_meta %}
+
+{% block title %}Referentes · {{ summary.rae }}{% endblock %}
+
+{% block content %}
+{{ page_head("Sección 5", "Referentes bibliográficos", "Registre las fuentes técnicas y normativas que sustentan la guía. Use un referente por fila.", "referentes", nav) }}
+{{ guide_meta(summary) }}
+{{ section_feedback(validation, "referentes") }}
+
+<form method="post" action="{{ url_for('guide_referentes', guide_id=guide_id) }}" class="stack">
+{{ csrf() }}
+<button class="sr-only" type="submit" name="action" value="save" tabindex="-1" aria-hidden="true">Guardar</button>
+<section class="panel">
+<div class="panel__head">
+<h2>Fuentes</h2>
+<span class="count">{{ guide.referencias | length }}</span>
+</div>
+
+{% if guide.referencias %}
+<div class="repeat-list">
+{% for reference in guide.referencias %}
+<article class="repeat-card">
+<div class="repeat-card__head">
+<span class="repeat-card__index">{{ loop.index }}</span>
+<button class="btn btn-ghost btn-small btn-danger" type="submit" name="action" value="delete:{{ loop.index0 }}">Eliminar</button>
+</div>
+<label class="field">
+<span class="field__label">Referente</span>
+<textarea name="referencia.{{ loop.index0 }}" rows="2">{{ reference.texto if reference is mapping else reference }}</textarea>
+</label>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+<p class="empty-state__title">Sin referentes registrados.</p>
+<p>Agregue las fuentes o use el autocompletado.</p>
+</div>
+{% endif %}
+</section>
+
+<div class="form-actions form-actions--spread">
+<div class="actions-inline">
+<button class="btn btn-primary" type="submit" name="action" value="save">Guardar referentes</button>
+<button class="btn btn-secondary" type="submit" name="action" value="add">Agregar referente</button>
+</div>
+<div class="actions-inline">
+<label class="check"><input type="checkbox" name="usar_ia" value="on"/> Usar IA</label>
+<button class="btn btn-secondary" type="submit" name="action" value="suggest">Autocompletar referentes</button>
+</div>
+</div>
+</form>
+{% endblock %}

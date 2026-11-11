@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="theme-color" content="#007832"/>
+<meta name="color-scheme" content="light dark"/>
+<title>{% block title %}Generador de Guías de Aprendizaje{% endblock %}</title>
+<link rel="icon" href="/static/img/sena-logo.svg" type="image/svg+xml"/>
+<link rel="preload" href="/static/fonts/work-sans-latin.woff2" as="font" type="font/woff2" crossorigin/>
+<script>
+(function(){
+  try {
+    var saved = localStorage.getItem("ga-theme");
+    var dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", saved || (dark ? "dark" : "light"));
+  } catch (e) {}
+})();
+</script>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<script src="/static/js/theme.js" defer></script>
+</head>
+<body>
+<header class="site-header site-header--compact">
+<div class="site-header__inner">
+<a class="brand brand--link" href="{{ url_for('index') }}">
+<span class="brand__eyebrow">Servicio Nacional de Aprendizaje</span>
+<span class="brand__title">Generador de Guías de Aprendizaje</span>
+<span class="brand__subtitle">Guías de aprendizaje SENA · GFPI-F-135</span>
+</a>
+<div class="site-header__aside">
+<a class="header-link" href="{{ url_for('settings') }}">Configuración IA</a>
+<img class="sena-logo" src="/static/img/sena-logo-white.svg" alt="SENA" width="72" height="70"/>
+<button id="theme-toggle" class="theme-toggle" type="button" aria-label="Cambiar a tema oscuro" aria-pressed="false">
+<svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+<svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+</div>
+</div>
+</header>
+
+<div class="shell{% if not (nav is defined and nav) %} shell--wide{% endif %}">
+{% if nav is defined and nav %}
+<aside class="sidebar" aria-label="Estructura de la guía">
+{% include "_sidebar.html" %}
+</aside>
+{% endif %}
+
+<main class="content">
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-stack" role="status" aria-live="polite">
+{% for category, message in messages %}
+<div class="msg {{ category }}">{{ message }}</div>
+{% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% block content %}{% endblock %}
+</main>
+</div>
+
+<footer class="site-footer">
+<p><strong>SENA</strong> · Servicio Nacional de Aprendizaje · Generador de Guías de Aprendizaje</p>
+</footer>
+</body>
+</html>

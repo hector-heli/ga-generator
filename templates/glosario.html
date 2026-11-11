@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_forms.html" import csrf, section_feedback %}
+{% from "_guide_ui.html" import page_head, guide_meta %}
+
+{% block title %}Glosario · {{ summary.rae }}{% endblock %}
+
+{% block content %}
+{{ page_head("Sección 4", "Glosario de términos", "Defina los términos técnicos que el aprendiz necesita comprender para desarrollar las actividades.", "glosario", nav) }}
+{{ guide_meta(summary) }}
+{{ section_feedback(validation, "glosario") }}
+
+<form method="post" action="{{ url_for('guide_glosario', guide_id=guide_id) }}" class="stack">
+{{ csrf() }}
+<button class="sr-only" type="submit" name="action" value="save" tabindex="-1" aria-hidden="true">Guardar</button>
+<section class="panel">
+<div class="panel__head">
+<h2>Términos</h2>
+<span class="count">{{ guide.glosario | length }}</span>
+</div>
+
+{% if guide.glosario %}
+<div class="repeat-list">
+{% for entry in guide.glosario %}
+<article class="repeat-card">
+<div class="repeat-card__head">
+<span class="repeat-card__index">{{ loop.index }}</span>
+<button class="btn btn-ghost btn-small btn-danger" type="submit" name="action" value="delete:{{ loop.index0 }}">Eliminar</button>
+</div>
+<div class="field-grid field-grid--two">
+<label class="field">
+<span class="field__label">Término</span>
+<input type="text" name="glosario.{{ loop.index0 }}.termino" value="{{ entry.termino }}"/>
+</label>
+<label class="field">
+<span class="field__label">Definición</span>
+<input type="text" name="glosario.{{ loop.index0 }}.definicion" value="{{ entry.definicion }}"/>
+</label>
+</div>
+</article>
+{% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+<p class="empty-state__title">Sin términos registrados.</p>
+<p>Agregue los términos uno por uno o use el autocompletado.</p>
+</div>
+{% endif %}
+</section>
+
+<div class="form-actions form-actions--spread">
+<div class="actions-inline">
+<button class="btn btn-primary" type="submit" name="action" value="save">Guardar glosario</button>
+<button class="btn btn-secondary" type="submit" name="action" value="add">Agregar término</button>
+</div>
+<div class="actions-inline">
+<label class="check"><input type="checkbox" name="usar_ia" value="on"/> Usar IA</label>
+<button class="btn btn-secondary" type="submit" name="action" value="suggest">Autocompletar glosario</button>
+</div>
+</div>
+</form>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% from "_forms.html" import csrf, section_feedback %}
+{% from "_guide_ui.html" import page_head, guide_meta %}
+
+{% block title %}Resumen · {{ summary.rae }}{% endblock %}
+
+{% block content %}
+{{ page_head("Sección 7", "Resumen y generación", "Revise el estado de la guía, la matriz de evidencias y genere el documento final.", "resumen", nav) }}
+{{ guide_meta(summary) }}
+
+<div class="dashboard-grid">
+<div class="stack">
+{% if archivo %}
+<section class="panel panel--success">
+<div class="panel__head">
+<h2>Documento generado</h2>
+<span class="status-pill status-pill--done">Listo</span>
+</div>
+<p>El archivo se generó correctamente. También puede descargarlo desde el enlace.</p>
+<div class="actions-inline">
+<a class="btn btn-primary" href="{{ url_for('download', filename=archivo) }}" download>Descargar {{ 'PDF' if es_pdf else 'Word' }}</a>
+{% if docx and docx != archivo %}
+<a class="btn btn-secondary" href="{{ url_for('download', filename=docx) }}" download>Descargar DOCX</a>
+{% endif %}
+</div>
+</section>
+{% endif %}
+
+<section class="panel">
+<div class="panel__head">
+<h2>Validación</h2>
+{% if validation.ok %}
+<span class="status-pill status-pill--done">Sin errores</span>
+{% else %}
+<span class="status-pill status-pill--partial">{{ validation.errors | length }} error(es)</span>
+{% endif %}
+</div>
+<p class="hint">Los errores impiden considerar la guía completa; las advertencias son recomendaciones que no bloquean la generación.</p>
+
+{% if validation.errors %}
+<div class="feedback">
+{% for error in validation.errors %}<p class="msg err">{{ error }}</p>{% endfor %}
+</div>
+{% endif %}
+{% if validation.warnings %}
+<details class="details"{% if not validation.errors %} open{% endif %}>
+<summary>Advertencias ({{ validation.warnings | length }})</summary>
+<div class="feedback">
+{% for warning in validation.warnings %}<p class="msg warn">{{ warning }}</p>{% endfor %}
+</div>
+</details>
+{% endif %}
+{% if validation.ok and not validation.warnings %}
+<p class="inline-note inline-note--ok">No hay observaciones pendientes.</p>
+{% endif %}
+</section>
+
+<section class="panel">
+<div class="panel__head">
+<h2>Matriz de evidencias</h2>
+<span class="count">{{ validation.evidence_rows | length }}</span>
+</div>
+{% if validation.evidence_rows %}
+<div class="table-wrap">
+<table class="data-table">
+<thead>
+<tr>
+<th>Fase</th>
+<th>Actividad del proyecto</th>
+<th>Actividad de aprendizaje</th>
+<th>Evidencia</th>
+<th>Criterios</th>
+<th>Instrumentos</th>
+</tr>
+</thead>
+<tbody>
+{% for row in validation.evidence_rows %}
+<tr>
+<td>{{ row.fase or "—" }}</td>
+<td>{{ row.actividad_proyecto or "—" }}</td>
+<td>{{ row.actividad_aprendizaje or "—" }}</td>
+<td class="preline">{{ row.evidencia }}</td>
+<td class="preline">{{ row.criterios or "—" }}</td>
+<td class="preline">{{ row.instrumentos or "—" }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<p class="inline-note inline-note--warn">Todavía no hay evidencias registradas. Complete las actividades de apropiación y transferencia.</p>
+{% endif %}
+</section>
+</div>
+
+<div class="stack">
+<section class="panel">
+<div class="panel__head">
+<h2>Totales</h2>
+</div>
+<dl class="meta-list">
+<div><dt>Horas declaradas</dt><dd>{{ validation.declared_hours | horas }} h</dd></div>
+<div><dt>Horas en actividades</dt><dd>{{ validation.computed_hours | horas }} h</dd></div>
+<div><dt>Actividades</dt><dd>{{ summary.activity_count }}</dd></div>
+<div><dt>Evidencias</dt><dd>{{ summary.evidence_count }}</dd></div>
+</dl>
+{% if validation.declared_hours and validation.computed_hours != validation.declared_hours %}
+<p class="inline-note inline-note--warn">La duración declarada no coincide con la suma de las actividades.</p>
+{% endif %}
+</section>
+
+<section class="panel">
+<div class="panel__head">
+<h2>Generar documento</h2>
+</div>
+<form method="post" action="{{ url_for('guide_generate', guide_id=guide_id) }}" class="stack">
+{{ csrf() }}
+<label class="field">
+<span class="field__label">Formato</span>
+<select name="format">
+<option value="docx">Word (DOCX)</option>
+<option value="pdf">PDF</option>
+</select>
+<span class="field__hint">El PDF requiere LibreOffice. Si no está disponible se generará el DOCX.</span>
+</label>
+<button class="btn btn-primary btn-block" type="submit">Generar con plantilla GFPI-F-135</button>
+</form>
+</section>
+
+<section class="panel panel--muted">
+<div class="panel__head">
+<h2>Eliminar guía</h2>
+</div>
+<p class="hint">Esta acción borra la guía y su contenido. No se puede deshacer.</p>
+<form method="post" action="{{ url_for('guide_delete', guide_id=guide_id) }}" onsubmit="return confirm('¿Eliminar esta guía de forma permanente?');">
+{{ csrf() }}
+<button class="btn btn-ghost btn-danger btn-block" type="submit">Eliminar guía</button>
+</form>
+</section>
+</div>
+</div>
+{% endblock %}
