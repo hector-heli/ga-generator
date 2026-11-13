@@ -1,0 +1,50 @@
+﻿{% extends "base.html" %}
+{% block title %}Proyectos formativos · Generador SENA{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Proyectos formativos</h1>
+    <p class="muted">Gestione proyectos, fases, actividades y los RAE que desarrolla cada actividad.</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn btn-secondary" href="{{ url_for('project_import') }}">Importar PDF</a>
+    <a class="btn btn-primary" href="{{ url_for('project_new') }}">Nuevo proyecto</a>
+  </div>
+</section>
+<form method="get" class="panel" style="margin-bottom:1rem">
+  <div class="field-grid">
+    <div class="field"><label for="q">Buscar</label><input id="q" name="q" value="{{ query or '' }}" placeholder="Nombre o código SOFIA"/></div>
+    <div class="field"><label for="programa_id">Programa</label>
+      <select id="programa_id" name="programa_id">
+        <option value="">Todos</option>
+        {% for p in programas %}<option value="{{ p.id }}" {% if p.id == programa_id %}selected{% endif %}>{{ p.codigo }} · {{ p.denominacion }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="form-actions"><button class="btn btn-secondary" type="submit">Filtrar</button></div>
+</form>
+{% if proyectos %}
+<div class="guide-list">
+  {% for p in proyectos %}
+  <article class="guide-card">
+    <div class="guide-card__main">
+      <p class="guide-card__eyebrow">{{ p.codigo_sofia or 'Sin código SOFIA' }} · {{ p.programa_codigo or '—' }}</p>
+      <h3><a href="{{ url_for('project_detail', proyecto_id=p.id) }}">{{ p.nombre or '(Sin nombre)' }}</a></h3>
+      <p class="muted">{{ p.programa_denominacion or 'Programa no encontrado' }}</p>
+      <p class="muted">{{ p.fases_count }} fases · {{ p.actividades_count }} actividades · {{ p.resultados_count }} RAE</p>
+    </div>
+    <div class="guide-card__actions">
+      <a class="btn btn-secondary" href="{{ url_for('project_detail', proyecto_id=p.id) }}">Abrir</a>
+      <a class="btn btn-ghost" href="{{ url_for('project_edit', proyecto_id=p.id) }}">Editar</a>
+      <form method="post" action="{{ url_for('project_delete', proyecto_id=p.id) }}" onsubmit="return confirm('¿Eliminar este proyecto y todas sus fases?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-ghost btn-danger" type="submit">Eliminar</button>
+      </form>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<section class="panel"><p>No hay proyectos formativos. <a href="{{ url_for('project_import') }}">Importe uno desde PDF</a> o cree uno manualmente.</p></section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,47 @@
+﻿{% extends "base.html" %}
+{% block title %}Importar proyecto formativo (PDF) · Generador SENA{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Importar proyecto formativo</h1>
+    <p class="muted">Extrae información básica, fases, actividades y RAE desde el reporte GFPI-F-016.</p>
+  </div>
+  <div class="page-head__actions"><a class="btn btn-secondary" href="{{ url_for('project_list') }}">Volver</a></div>
+</section>
+<section class="panel">
+  <form method="post" enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="step" value="preview"/>
+    <div class="field"><label for="file">Archivo PDF del proyecto formativo</label><input id="file" name="file" type="file" accept=".pdf" required/></div>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Analizar PDF</button></div>
+  </form>
+</section>
+
+{% if preview %}
+<section class="panel" style="margin-top:1rem">
+  <div class="panel__head"><h2>Vista previa</h2><span class="muted">{{ preview.meta.fases_count }} fases · {{ preview.meta.actividades_count }} actividades/RAE</span></div>
+  <p><strong>{{ preview.proyecto.nombre or '(sin nombre)' }}</strong> · SOFIA {{ preview.proyecto.codigo_sofia or '?' }} · Programa {{ preview.proyecto.programa_codigo or '?' }} v{{ preview.proyecto.programa_version or '?' }}</p>
+  {% if preview.warnings %}<details open><summary>Advertencias ({{ preview.warnings|length }})</summary><ul>{% for w in preview.warnings %}<li>{{ w }}</li>{% endfor %}</ul></details>{% endif %}
+  <details><summary>Fases y actividades detectadas</summary>
+    <ul>{% for f in preview.fases %}
+      <li><strong>{{ f.nombre }}</strong> — {{ f.actividades|length }} actividades
+        <ul>{% for a in f.actividades %}<li>{{ a.rae_codigo }} {{ a.nombre }} ({{ a.duracion }} h)</li>{% endfor %}</ul>
+      </li>
+    {% endfor %}</ul>
+  </details>
+  <form method="post" class="stack" style="margin-top:1rem">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="step" value="save"/>
+    <input type="hidden" name="preview_token" value="{{ preview_token }}"/>
+    <div class="field"><label>Programa de formación</label>
+      <select name="programa_id" required>
+        <option value="">Seleccione…</option>
+        {% for p in programas %}<option value="{{ p.id }}" {% if matched and p.id == matched.id %}selected{% endif %}>{{ p.codigo }} · {{ p.denominacion }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="field"><label>Fuente</label><input name="fuente" value="Importado desde PDF"/></div>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Guardar proyecto</button></div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

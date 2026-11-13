@@ -1,6 +1,8 @@
 import json
 import os
+import re
 import secrets
+import sqlite3
 import time
 import uuid
 from datetime import datetime
@@ -19,8 +21,8 @@ from flask import (
     url_for,
 )
 
-from config import DRAFT_DIR, OUTPUT_DIR, public_config, save_config
-from services import store
+from config import DRAFT_DIR, OUTPUT_DIR, TEMP_DIR, public_config, save_config
+from services import catalog_importer, catalog_store, project_importer, store
 from services.defaults import (
     MOMENT_ORDER,
     MOMENTS,
@@ -688,6 +690,571 @@ def api_load_draft(draft_id):
     except (json.JSONDecodeError, OSError):
         return jsonify({"error": "El borrador está corrupto o no se pudo leer."}), 400
     return jsonify(normalize_guide(stored))
+
+
+# ---------------------------------------------------------------------------
+# Catálogo de programas de formación
+# ---------------------------------------------------------------------------
+
+catalog_store.init_db()
+
+
+def _catalog_programa_form():
+    data = {k: request.form.get(k, "").strip() for k in [
+        "denominacion", "codigo", "version", "vigencia", "tipo", "titulo_obtenido", "justificacion", "fuente"]}
+    for key in ("horas_lectiva", "horas_productiva", "horas_total"):
+        try:
+            data[key] = float(request.form.get(key) or 0)
+        except Exception:
+            data[key] = 0.0
+    return data
+
+
+def _project_form():
+    data = {k: request.form.get(k, "").strip() for k in [
+        "programa_id", "codigo_sofia", "nombre", "centro_formacion", "regional", "empresas",
+        "palabras_clave", "planteamiento", "justificacion", "objetivo_general", "objetivos_especificos",
+        "alcance", "innovacion", "valoracion", "fuente"]}
+    for key in ("tiempo_meses", "total_resultados"):
+        try:
+            data[key] = float(request.form.get(key) or 0)
+        except Exception:
+            data[key] = 0.0
+    return data
+
+
+def _preview_path(token, prefix):
+    if not catalog_store.valid_id(token):
+        return None
+    return TEMP_DIR / f"{prefix}_{token}.json"
+
+
+def _save_preview(parsed, prefix):
+    token = uuid.uuid4().hex
+    path = _preview_path(token, prefix)
+    path.write_text(json.dumps(parsed, ensure_ascii=False), encoding="utf-8")
+    return token
+
+
+def _load_preview(token, prefix):
+    path = _preview_path(token, prefix)
+    if not path or not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    try:
+        path.unlink()
+    except Exception:
+        pass
+    return data
+
+
+def _match_result(results, codigo="", nombre=""):
+    code = (codigo or "").strip().upper()
+    if code:
+        for r in results:
+            if (r.get("codigo") or "").strip().upper() == code:
+                return r["id"]
+    needle = re.sub(r"\s+", " ", (nombre or "").lower()).strip()
+    if len(needle) < 12:
+        return None
+    for r in results:
+        hay = re.sub(r"\s+", " ", (r.get("denominacion") or "").lower()).strip()
+        if hay.startswith(needle[:80]) or needle.startswith(hay[:80]):
+            return r["id"]
+    return None
+
+
+@app.route("/programas")
+def catalog_list():
+    query = request.args.get("q", "").strip()
+    programas = catalog_store.list_programas(query)
+    return render_template("programas/lista.html", programas=programas, query=query)
+
+
+@app.route("/programas/importar", methods=["GET", "POST"])
+def catalog_import():
+    if request.method == "POST":
+        _check_csrf()
+        step = request.form.get("step", "preview")
+        if step == "save":
+            parsed = _load_preview(request.form.get("preview_token", ""), "catalog")
+            if not parsed:
+                flash("La vista previa expiró o es inválida. Vuelva a analizar el PDF.", "error")
+                return redirect(url_for("catalog_import"))
+            ver = request.form.get("version")
+            if ver:
+                parsed.setdefault("programa", {})["version"] = ver.strip()
+            if request.form.get("replace"):
+                existing = catalog_store.find_programa(parsed.get("programa", {}).get("codigo", ""), parsed.get("programa", {}).get("version", ""))
+                if existing:
+                    catalog_store.replace_programa(existing["id"], parsed)
+                    flash("Programa reemplazado en el catálogo.", "success")
+                    return redirect(url_for("catalog_detail", programa_id=existing["id"]))
+            try:
+                pid = catalog_store.create_programa(parsed)
+            except sqlite3.IntegrityError:
+                flash("Ya existe un programa con ese código y versión. Marque reemplazar o cambie la versión.", "error")
+                token = _save_preview(parsed, "catalog")
+                return render_template("programas/importar.html", preview=parsed, preview_token=token, existing=catalog_store.find_programa(parsed.get("programa", {}).get("codigo", ""), parsed.get("programa", {}).get("version", "")))
+            flash("Programa importado en el catálogo.", "success")
+            return redirect(url_for("catalog_detail", programa_id=pid))
+        file = request.files.get("file")
+        if not file or not file.filename:
+            flash("Seleccione un archivo PDF.", "error")
+            return redirect(url_for("catalog_import"))
+        if not file.filename.lower().endswith(".pdf"):
+            flash("Solo se admite importación desde PDF en esta versión.", "error")
+            return redirect(url_for("catalog_import"))
+        tmp_path = TEMP_DIR / f"{uuid.uuid4().hex}.pdf"
+        file.save(tmp_path)
+        try:
+            parsed = catalog_importer.parse_design_pdf(tmp_path)
+        except Exception as exc:
+            flash(f"No se pudo analizar el PDF: {exc}", "error")
+            return redirect(url_for("catalog_import"))
+        finally:
+            try:
+                tmp_path.unlink()
+            except Exception:
+                pass
+        existing = catalog_store.find_programa(parsed.get("programa", {}).get("codigo", ""), parsed.get("programa", {}).get("version", ""))
+        token = _save_preview(parsed, "catalog")
+        return render_template("programas/importar.html", preview=parsed, preview_token=token, existing=existing)
+    return render_template("programas/importar.html")
+
+
+@app.route("/programas/nuevo", methods=["GET", "POST"])
+def catalog_new():
+    if request.method == "POST":
+        _check_csrf()
+        data = _catalog_programa_form()
+        try:
+            pid = catalog_store.create_programa({"programa": data, "competencias": [], "ambientes": [], "materiales": []})
+        except sqlite3.IntegrityError:
+            flash("Ya existe un programa con ese código y versión.", "error")
+            return render_template("programas/editor.html", programa=data)
+        flash("Programa creado.", "success")
+        return redirect(url_for("catalog_detail", programa_id=pid))
+    return render_template("programas/editor.html", programa=None)
+
+
+@app.route("/programas/<programa_id>")
+def catalog_detail(programa_id):
+    if not catalog_store.valid_id(programa_id):
+        abort(404)
+    programa = catalog_store.get_programa_detalle(programa_id)
+    if not programa:
+        abort(404)
+    proyectos = catalog_store.list_proyectos(programa_id=programa_id)
+    return render_template("programas/detalle.html", programa=programa, proyectos=proyectos)
+
+
+@app.route("/programas/<programa_id>/editar", methods=["GET", "POST"])
+def catalog_edit(programa_id):
+    if not catalog_store.valid_id(programa_id):
+        abort(404)
+    programa = catalog_store.get_programa(programa_id)
+    if not programa:
+        abort(404)
+    if request.method == "POST":
+        _check_csrf()
+        catalog_store.save_programa_basico(programa_id, _catalog_programa_form())
+        flash("Programa actualizado.", "success")
+        return redirect(url_for("catalog_detail", programa_id=programa_id))
+    return render_template("programas/editor.html", programa=programa)
+
+
+@app.route("/programas/<programa_id>/eliminar", methods=["POST"])
+def catalog_delete(programa_id):
+    _check_csrf()
+    if catalog_store.valid_id(programa_id):
+        catalog_store.delete_programa(programa_id)
+    flash("Programa eliminado.", "success")
+    return redirect(url_for("catalog_list"))
+
+
+@app.route("/programas/<programa_id>/competencias", methods=["POST"])
+def catalog_add_competencia(programa_id):
+    _check_csrf()
+    catalog_store.add_competencia(programa_id, request.form)
+    flash("Competencia agregada.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/editar", methods=["POST"])
+def catalog_update_competencia(programa_id, competencia_id):
+    _check_csrf()
+    catalog_store.update_competencia(competencia_id, request.form)
+    flash("Competencia actualizada.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/eliminar", methods=["POST"])
+def catalog_delete_competencia(programa_id, competencia_id):
+    _check_csrf()
+    if catalog_store.valid_id(programa_id) and catalog_store.valid_id(competencia_id):
+        catalog_store.delete_competencia(competencia_id)
+        flash("Competencia eliminada.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/resultados", methods=["POST"])
+def catalog_add_resultado(programa_id, competencia_id):
+    _check_csrf()
+    catalog_store.add_resultado(competencia_id, request.form)
+    flash("Resultado agregado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/resultados/<resultado_id>/editar", methods=["POST"])
+def catalog_update_resultado(programa_id, competencia_id, resultado_id):
+    _check_csrf()
+    catalog_store.update_resultado(resultado_id, request.form)
+    flash("Resultado actualizado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/resultados/<resultado_id>/eliminar", methods=["POST"])
+def catalog_delete_resultado(programa_id, competencia_id, resultado_id):
+    _check_csrf()
+    catalog_store.delete_resultado(resultado_id)
+    flash("Resultado eliminado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/conocimientos", methods=["POST"])
+def catalog_add_conocimiento(programa_id, competencia_id):
+    _check_csrf()
+    catalog_store.add_conocimiento(competencia_id, request.form)
+    flash("Conocimiento agregado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/conocimientos/<conocimiento_id>/editar", methods=["POST"])
+def catalog_update_conocimiento(programa_id, competencia_id, conocimiento_id):
+    _check_csrf()
+    catalog_store.update_conocimiento(conocimiento_id, request.form)
+    flash("Conocimiento actualizado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/conocimientos/<conocimiento_id>/eliminar", methods=["POST"])
+def catalog_delete_conocimiento(programa_id, competencia_id, conocimiento_id):
+    _check_csrf()
+    catalog_store.delete_conocimiento(conocimiento_id)
+    flash("Conocimiento eliminado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/criterios", methods=["POST"])
+def catalog_add_criterio(programa_id, competencia_id):
+    _check_csrf()
+    catalog_store.add_criterio(competencia_id, request.form)
+    flash("Criterio agregado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/criterios/<criterio_id>/editar", methods=["POST"])
+def catalog_update_criterio(programa_id, competencia_id, criterio_id):
+    _check_csrf()
+    catalog_store.update_criterio(criterio_id, request.form)
+    flash("Criterio actualizado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/competencias/<competencia_id>/criterios/<criterio_id>/eliminar", methods=["POST"])
+def catalog_delete_criterio(programa_id, competencia_id, criterio_id):
+    _check_csrf()
+    catalog_store.delete_criterio(criterio_id)
+    flash("Criterio eliminado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/ambientes", methods=["POST"])
+def catalog_add_ambiente(programa_id):
+    _check_csrf()
+    catalog_store.add_ambiente(programa_id, request.form)
+    flash("Ambiente agregado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/ambientes/<ambiente_id>/editar", methods=["POST"])
+def catalog_update_ambiente(programa_id, ambiente_id):
+    _check_csrf()
+    catalog_store.update_ambiente(ambiente_id, request.form)
+    flash("Ambiente actualizado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/ambientes/<ambiente_id>/eliminar", methods=["POST"])
+def catalog_delete_ambiente(programa_id, ambiente_id):
+    _check_csrf()
+    catalog_store.delete_ambiente(ambiente_id)
+    flash("Ambiente eliminado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/materiales", methods=["POST"])
+def catalog_add_material(programa_id):
+    _check_csrf()
+    catalog_store.add_material(programa_id, request.form)
+    flash("Material agregado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/materiales/<material_id>/editar", methods=["POST"])
+def catalog_update_material(programa_id, material_id):
+    _check_csrf()
+    catalog_store.update_material(material_id, request.form)
+    flash("Material actualizado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+@app.route("/programas/<programa_id>/materiales/<material_id>/eliminar", methods=["POST"])
+def catalog_delete_material(programa_id, material_id):
+    _check_csrf()
+    catalog_store.delete_material(material_id)
+    flash("Material eliminado.", "success")
+    return redirect(url_for("catalog_detail", programa_id=programa_id))
+
+
+# ---------------------------------------------------------------------------
+# Proyectos formativos
+# ---------------------------------------------------------------------------
+
+@app.route("/proyectos")
+def project_list():
+    query = request.args.get("q", "").strip()
+    programa_id = request.args.get("programa_id", "").strip()
+    return render_template(
+        "proyectos/lista.html",
+        proyectos=catalog_store.list_proyectos(query, programa_id),
+        programas=catalog_store.list_programas(),
+        query=query,
+        programa_id=programa_id,
+    )
+
+
+@app.route("/proyectos/nuevo", methods=["GET", "POST"])
+def project_new():
+    programas = catalog_store.list_programas()
+    if request.method == "POST":
+        _check_csrf()
+        data = _project_form()
+        if not data.get("programa_id") or not catalog_store.get_programa(data["programa_id"]):
+            flash("Seleccione un programa de formación válido.", "error")
+            return render_template("proyectos/editor.html", proyecto=data, programas=programas)
+        pid = catalog_store.create_proyecto(data)
+        flash("Proyecto formativo creado.", "success")
+        return redirect(url_for("project_detail", proyecto_id=pid))
+    return render_template("proyectos/editor.html", proyecto=None, programas=programas)
+
+
+@app.route("/proyectos/importar", methods=["GET", "POST"])
+def project_import():
+    programas = catalog_store.list_programas()
+    if request.method == "POST":
+        _check_csrf()
+        step = request.form.get("step", "preview")
+        if step == "save":
+            parsed = _load_preview(request.form.get("preview_token", ""), "project")
+            if not parsed:
+                flash("La vista previa expiró o es inválida. Vuelva a analizar el PDF.", "error")
+                return redirect(url_for("project_import"))
+            programa_id = request.form.get("programa_id", "").strip()
+            if not programa_id:
+                prog = catalog_store.find_programa(parsed.get("proyecto", {}).get("programa_codigo", ""), parsed.get("proyecto", {}).get("programa_version", ""))
+                programa_id = prog["id"] if prog else ""
+            if not programa_id or not catalog_store.get_programa(programa_id):
+                flash("Seleccione el programa de formación al que pertenece el proyecto.", "error")
+                token = _save_preview(parsed, "project")
+                return render_template("proyectos/importar.html", preview=parsed, preview_token=token, programas=programas)
+            data = dict(parsed.get("proyecto") or {})
+            data["programa_id"] = programa_id
+            data["fuente"] = request.form.get("fuente", "").strip() or "Importado desde PDF"
+            pid = catalog_store.create_proyecto(data)
+            results = catalog_store.get_programa_resultados(programa_id)
+            linked = 0
+            for fase in parsed.get("fases") or []:
+                fid = catalog_store.add_fase(pid, {"nombre": fase.get("nombre", ""), "productos": fase.get("productos", "")})
+                for act in fase.get("actividades") or []:
+                    aid = catalog_store.add_actividad(fid, {"nombre": act.get("nombre", ""), "descripcion": act.get("descripcion", "")})
+                    rid = _match_result(results, act.get("rae_codigo") or act.get("codigo"), act.get("nombre"))
+                    if rid:
+                        catalog_store.set_actividad_resultados(aid, [rid])
+                        linked += 1
+            flash(f"Proyecto importado con {linked} actividades vinculadas a RAE del catálogo.", "success")
+            return redirect(url_for("project_detail", proyecto_id=pid))
+        file = request.files.get("file")
+        if not file or not file.filename:
+            flash("Seleccione un archivo PDF.", "error")
+            return redirect(url_for("project_import"))
+        if not file.filename.lower().endswith(".pdf"):
+            flash("Solo se admite importación desde PDF.", "error")
+            return redirect(url_for("project_import"))
+        tmp_path = TEMP_DIR / f"{uuid.uuid4().hex}.pdf"
+        file.save(tmp_path)
+        try:
+            parsed = project_importer.parse_project_pdf(tmp_path)
+        except Exception as exc:
+            flash(f"No se pudo analizar el PDF: {exc}", "error")
+            return redirect(url_for("project_import"))
+        finally:
+            try:
+                tmp_path.unlink()
+            except Exception:
+                pass
+        matched = catalog_store.find_programa(parsed.get("proyecto", {}).get("programa_codigo", ""), parsed.get("proyecto", {}).get("programa_version", ""))
+        token = _save_preview(parsed, "project")
+        return render_template("proyectos/importar.html", preview=parsed, preview_token=token, programas=programas, matched=matched)
+    return render_template("proyectos/importar.html", programas=programas)
+
+
+@app.route("/proyectos/<proyecto_id>")
+def project_detail(proyecto_id):
+    proyecto = catalog_store.get_proyecto_detalle(proyecto_id)
+    if not proyecto:
+        abort(404)
+    programa = catalog_store.get_programa(proyecto["programa_id"])
+    resultados = catalog_store.get_programa_resultados(proyecto["programa_id"])
+    return render_template("proyectos/detalle.html", proyecto=proyecto, programa=programa, resultados=resultados)
+
+
+@app.route("/proyectos/<proyecto_id>/editar", methods=["GET", "POST"])
+def project_edit(proyecto_id):
+    proyecto = catalog_store.get_proyecto(proyecto_id)
+    if not proyecto:
+        abort(404)
+    programas = catalog_store.list_programas()
+    if request.method == "POST":
+        _check_csrf()
+        catalog_store.update_proyecto(proyecto_id, _project_form())
+        flash("Proyecto actualizado.", "success")
+        return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+    return render_template("proyectos/editor.html", proyecto=proyecto, programas=programas)
+
+
+@app.route("/proyectos/<proyecto_id>/eliminar", methods=["POST"])
+def project_delete(proyecto_id):
+    _check_csrf()
+    catalog_store.delete_proyecto(proyecto_id)
+    flash("Proyecto eliminado.", "success")
+    return redirect(url_for("project_list"))
+
+
+@app.route("/proyectos/<proyecto_id>/fases", methods=["POST"])
+def project_add_fase(proyecto_id):
+    _check_csrf()
+    catalog_store.add_fase(proyecto_id, request.form)
+    flash("Fase agregada.", "success")
+    return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+
+
+@app.route("/proyectos/<proyecto_id>/fases/<fase_id>/editar", methods=["POST"])
+def project_update_fase(proyecto_id, fase_id):
+    _check_csrf()
+    catalog_store.update_fase(fase_id, request.form)
+    flash("Fase actualizada.", "success")
+    return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+
+
+@app.route("/proyectos/<proyecto_id>/fases/<fase_id>/eliminar", methods=["POST"])
+def project_delete_fase(proyecto_id, fase_id):
+    _check_csrf()
+    catalog_store.delete_fase(fase_id)
+    flash("Fase eliminada.", "success")
+    return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+
+
+@app.route("/proyectos/<proyecto_id>/fases/<fase_id>/actividades", methods=["POST"])
+def project_add_actividad(proyecto_id, fase_id):
+    _check_csrf()
+    catalog_store.add_actividad(fase_id, request.form)
+    flash("Actividad agregada.", "success")
+    return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+
+
+@app.route("/proyectos/<proyecto_id>/actividades/<actividad_id>/editar", methods=["POST"])
+def project_update_actividad(proyecto_id, actividad_id):
+    _check_csrf()
+    catalog_store.update_actividad(actividad_id, request.form)
+    flash("Actividad actualizada.", "success")
+    return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+
+
+@app.route("/proyectos/<proyecto_id>/actividades/<actividad_id>/eliminar", methods=["POST"])
+def project_delete_actividad(proyecto_id, actividad_id):
+    _check_csrf()
+    catalog_store.delete_actividad(actividad_id)
+    flash("Actividad eliminada.", "success")
+    return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+
+
+@app.route("/proyectos/<proyecto_id>/actividades/<actividad_id>/resultados", methods=["POST"])
+def project_set_resultados(proyecto_id, actividad_id):
+    _check_csrf()
+    catalog_store.set_actividad_resultados(actividad_id, request.form.getlist("resultado_id"))
+    flash("Resultados de la actividad actualizados.", "success")
+    return redirect(url_for("project_detail", proyecto_id=proyecto_id))
+
+
+# ---------------------------------------------------------------------------
+# API para prellenado
+# ---------------------------------------------------------------------------
+
+@app.route("/api/catalog/programas")
+def api_catalog_programas():
+    programas = []
+    for p in catalog_store.list_programas():
+        detail = catalog_store.get_programa_api(p["id"])
+        if detail:
+            programas.append(detail)
+    return jsonify({"programas": programas})
+
+
+@app.route("/api/catalog/programas/<programa_id>/competencias")
+def api_catalog_competencias(programa_id):
+    detail = catalog_store.get_programa_api(programa_id)
+    if not detail:
+        return jsonify({"error": "Programa no encontrado."}), 404
+    return jsonify({"competencias": detail.get("competencias", [])})
+
+
+@app.route("/api/catalog/competencias/<competencia_id>/resultados")
+def api_catalog_resultados(competencia_id):
+    comp = catalog_store.get_competencia(competencia_id)
+    if not comp:
+        return jsonify({"error": "Competencia no encontrada."}), 404
+    detail = catalog_store.get_programa_api(comp["programa_id"])
+    comps = (detail or {}).get("competencias", [])
+    target = next((c for c in comps if c["id"] == competencia_id), None)
+    return jsonify({"resultados": (target or {}).get("resultados", [])})
+
+
+@app.route("/api/catalog/programas/<programa_id>/proyectos")
+def api_catalog_proyectos(programa_id):
+    return jsonify({"proyectos": catalog_store.list_proyectos(programa_id=programa_id)})
+
+
+@app.route("/api/catalog/proyectos/<proyecto_id>")
+def api_catalog_proyecto(proyecto_id):
+    proyecto = catalog_store.get_proyecto_api(proyecto_id)
+    if not proyecto:
+        return jsonify({"error": "Proyecto no encontrado."}), 404
+    return jsonify({"proyecto": proyecto})
+
+
+@app.route("/api/catalog/actividades/<actividad_id>/resultados")
+def api_catalog_actividad_resultados(actividad_id):
+    return jsonify({"resultados": catalog_store.get_actividad_resultados(actividad_id)})
+
+
+@app.route("/api/catalog/programas/<programa_id>/resultados")
+def api_catalog_programa_resultados(programa_id):
+    return jsonify({"resultados": catalog_store.get_programa_resultados(programa_id)})
 
 
 if __name__ == "__main__":

@@ -1,0 +1,43 @@
+﻿{% extends "base.html" %}
+{% block title %}Programas de formación · Generador SENA{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Programas de formación</h1>
+    <p class="muted">Catálogo curricular para prellenar la identificación de las guías.</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn btn-secondary" href="{{ url_for('catalog_import') }}">Importar PDF</a>
+    <a class="btn btn-primary" href="{{ url_for('catalog_new') }}">Nuevo programa</a>
+  </div>
+</section>
+<form method="get" class="panel" style="margin-bottom:1rem">
+  <div class="field-grid">
+    <div class="field"><label for="q">Buscar</label><input id="q" name="q" value="{{ query or '' }}" placeholder="Código o denominación"/></div>
+  </div>
+  <div class="form-actions"><button class="btn btn-secondary" type="submit">Buscar</button></div>
+</form>
+{% if programas %}
+<div class="guide-list">
+  {% for p in programas %}
+  <article class="guide-card">
+    <div class="guide-card__main">
+      <p class="guide-card__eyebrow">{{ p.codigo or 'Sin código' }}{% if p.version %} · v{{ p.version }}{% endif %}</p>
+      <h3><a href="{{ url_for('catalog_detail', programa_id=p.id) }}">{{ p.denominacion or '(Sin denominación)' }}</a></h3>
+      <p class="muted">{{ p.competencias_count }} competencias · {{ p.resultados_count }} resultados · {{ p.horas_total or 0 }} h</p>
+    </div>
+    <div class="guide-card__actions">
+      <a class="btn btn-secondary" href="{{ url_for('catalog_detail', programa_id=p.id) }}">Abrir</a>
+      <a class="btn btn-ghost" href="{{ url_for('catalog_edit', programa_id=p.id) }}">Editar</a>
+      <form method="post" action="{{ url_for('catalog_delete', programa_id=p.id) }}" onsubmit="return confirm('¿Eliminar este programa y todo su contenido?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-ghost btn-danger" type="submit">Eliminar</button>
+      </form>
+    </div>
+  </article>
+  {% endfor %}
+</div>
+{% else %}
+<section class="panel"><p>No hay programas en el catálogo. <a href="{{ url_for('catalog_import') }}">Importe un PDF</a> o cree uno manualmente.</p></section>
+{% endif %}
+{% endblock %}

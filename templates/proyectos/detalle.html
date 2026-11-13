@@ -1,0 +1,97 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ proyecto.nombre }} · Proyecto formativo{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="guide-card__eyebrow">{{ proyecto.codigo_sofia or 'Sin código SOFIA' }}{% if programa %} · {{ programa.codigo }}{% endif %}</p>
+    <h1>{{ proyecto.nombre }}</h1>
+    <p class="muted">{{ programa.denominacion if programa else 'Programa no encontrado' }} · {{ proyecto.fases|length }} fases</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn btn-secondary" href="{{ url_for('project_edit', proyecto_id=proyecto.id) }}">Editar datos</a>
+    <a class="btn btn-primary" href="{{ url_for('project_import') }}">Importar otro PDF</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Información del proyecto</h2></div>
+  <p><strong>Centro:</strong> {{ proyecto.centro_formacion or '—' }} · <strong>Regional:</strong> {{ proyecto.regional or '—' }} · <strong>Tiempo:</strong> {{ proyecto.tiempo_meses or 0 }} meses · <strong>Total resultados:</strong> {{ proyecto.total_resultados or 0 }}</p>
+  {% if proyecto.palabras_clave %}<p><strong>Palabras clave:</strong> {{ proyecto.palabras_clave }}</p>{% endif %}
+  {% if proyecto.objetivo_general %}<p><strong>Objetivo general:</strong> {{ proyecto.objetivo_general }}</p>{% endif %}
+  {% if proyecto.justificacion %}<p class="muted">{{ proyecto.justificacion }}</p>{% endif %}
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Fases y actividades</h2></div>
+  {% for fase in proyecto.fases %}
+  <details class="catalog-comp" {% if loop.first %}open{% endif %}>
+    <summary><strong>{{ fase.nombre }}</strong> <span class="muted">— {{ fase.actividades|length }} actividades</span></summary>
+    <div style="padding:.5rem 0">
+      <details><summary>Editar fase</summary>
+        <form method="post" action="{{ url_for('project_update_fase', proyecto_id=proyecto.id, fase_id=fase.id) }}" class="field-grid">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="field"><label>Nombre</label><input name="nombre" value="{{ fase.nombre }}"/></div>
+          <div class="field"><label>Productos</label><input name="productos" value="{{ fase.productos }}"/></div>
+          <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Guardar fase</button></div>
+        </form>
+      </details>
+      <form method="post" action="{{ url_for('project_delete_fase', proyecto_id=proyecto.id, fase_id=fase.id) }}" onsubmit="return confirm('¿Eliminar esta fase y sus actividades?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar fase</button>
+      </form>
+
+      {% for act in fase.actividades %}
+      <div class="catalog-rae" style="margin-top:.75rem">
+        <details>
+          <summary><strong>{{ act.nombre }}</strong> <span class="muted">— {{ act.resultados|length }} RAE</span></summary>
+          <form method="post" action="{{ url_for('project_update_actividad', proyecto_id=proyecto.id, actividad_id=act.id) }}" class="stack">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="field"><label>Nombre</label><input name="nombre" value="{{ act.nombre }}"/></div>
+            <div class="field"><label>Descripción / competencia</label><textarea name="descripcion" rows="2">{{ act.descripcion }}</textarea></div>
+            <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Guardar actividad</button></div>
+          </form>
+          <form method="post" action="{{ url_for('project_set_resultados', proyecto_id=proyecto.id, actividad_id=act.id) }}" class="stack">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="field">
+              <label>RAE que desarrolla esta actividad</label>
+              {% set selected = act.resultados|map(attribute='id')|list %}
+              <select name="resultado_id" multiple size="8">
+                {% for comp_id, items in resultados|groupby('competencia_id') %}
+                <optgroup label="{{ items[0].competencia_nombre }}">
+                  {% for r in items %}<option value="{{ r.id }}" {% if r.id in selected %}selected{% endif %}>{{ r.codigo or '(sin código)' }}: {{ r.denominacion }} ({{ r.duracion }} h)</option>{% endfor %}
+                </optgroup>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Guardar RAE de la actividad</button></div>
+          </form>
+          <form method="post" action="{{ url_for('project_delete_actividad', proyecto_id=proyecto.id, actividad_id=act.id) }}" onsubmit="return confirm('¿Eliminar esta actividad?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar actividad</button>
+          </form>
+        </details>
+      </div>
+      {% endfor %}
+
+      <details><summary>Agregar actividad</summary>
+        <form method="post" action="{{ url_for('project_add_actividad', proyecto_id=proyecto.id, fase_id=fase.id) }}" class="stack">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="field"><label>Nombre</label><input name="nombre" required/></div>
+          <div class="field"><label>Descripción / competencia</label><textarea name="descripcion" rows="2"></textarea></div>
+          <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Agregar actividad</button></div>
+        </form>
+      </details>
+    </div>
+  </details>
+  {% else %}<p class="muted">Sin fases registradas.</p>{% endfor %}
+
+  <details><summary>Agregar fase</summary>
+    <form method="post" action="{{ url_for('project_add_fase', proyecto_id=proyecto.id) }}" class="field-grid">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="field"><label>Nombre</label><input name="nombre" required/></div>
+      <div class="field"><label>Productos</label><input name="productos"/></div>
+      <div class="form-actions"><button class="btn btn-primary btn-small" type="submit">Agregar fase</button></div>
+    </form>
+  </details>
+</section>
+{% endblock %}

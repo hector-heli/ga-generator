@@ -1,0 +1,225 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ programa.denominacion }} · Catálogo SENA{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="guide-card__eyebrow">{{ programa.codigo or 'Sin código' }}{% if programa.version %} · v{{ programa.version }}{% endif %}</p>
+    <h1>{{ programa.denominacion }}</h1>
+    <p class="muted">{{ programa.horas_total or 0 }} h · {{ programa.competencias|length }} competencias · {{ programa.ambientes|length }} ambientes · {{ programa.materiales|length }} materiales</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn btn-secondary" href="{{ url_for('catalog_edit', programa_id=programa.id) }}">Editar datos</a>
+    <a class="btn btn-secondary" href="{{ url_for('project_new', programa_id=programa.id) }}">Nuevo proyecto</a>
+    <a class="btn btn-primary" href="{{ url_for('catalog_import') }}">Importar otro PDF</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Datos del programa</h2></div>
+  <p><strong>Vigencia:</strong> {{ programa.vigencia or '—' }} · <strong>Tipo:</strong> {{ programa.tipo or '—' }} · <strong>Título:</strong> {{ programa.titulo_obtenido or '—' }}</p>
+  {% if programa.justificacion %}<p class="muted">{{ programa.justificacion }}</p>{% endif %}
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Proyectos formativos</h2><a class="btn btn-small btn-secondary" href="{{ url_for('project_import') }}">Importar proyecto PDF</a></div>
+  {% if proyectos %}
+  <ul>{% for p in proyectos %}<li><a href="{{ url_for('project_detail', proyecto_id=p.id) }}">{{ p.nombre or '(Sin nombre)' }}</a> <span class="muted">— {{ p.fases_count }} fases · {{ p.actividades_count }} actividades · {{ p.resultados_count }} RAE</span></li>{% endfor %}</ul>
+  {% else %}<p class="muted">Sin proyectos formativos registrados.</p>{% endif %}
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Competencias y resultados</h2></div>
+  {% for c in programa.competencias %}
+  <details class="catalog-comp" {% if loop.first %}open{% endif %}>
+    <summary><strong>{{ c.codigo_norma }}</strong> {{ c.nombre }} <span class="muted">— {{ c.duracion }} h · {{ c.resultados|length }} RAE</span></summary>
+    <div style="padding:.5rem 0">
+      <details><summary>Editar competencia</summary>
+        <form method="post" action="{{ url_for('catalog_update_competencia', programa_id=programa.id, competencia_id=c.id) }}" class="field-grid">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="field"><label>Código norma</label><input name="codigo_norma" value="{{ c.codigo_norma }}"/></div>
+          <div class="field"><label>Nombre</label><input name="nombre" value="{{ c.nombre }}"/></div>
+          <div class="field"><label>Duración (h)</label><input name="duracion" type="number" step="0.5" value="{{ c.duracion }}"/></div>
+          <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Guardar competencia</button></div>
+        </form>
+      </details>
+
+      {% for r in c.resultados %}
+      <div class="catalog-rae">
+        <details>
+          <summary><strong>{{ r.codigo or '(sin código)' }}</strong> {{ r.denominacion }} <span class="muted">— {{ r.duracion }} h</span></summary>
+          <form method="post" action="{{ url_for('catalog_update_resultado', programa_id=programa.id, competencia_id=c.id, resultado_id=r.id) }}" class="field-grid">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="field"><label>Código RAE</label><input name="codigo" value="{{ r.codigo }}"/></div>
+            <div class="field"><label>Denominación</label><input name="denominacion" value="{{ r.denominacion }}"/></div>
+            <div class="field"><label>Duración (h)</label><input name="duracion" type="number" step="0.5" value="{{ r.duracion }}"/></div>
+            <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Guardar RAE</button></div>
+          </form>
+          <form method="post" action="{{ url_for('catalog_delete_resultado', programa_id=programa.id, competencia_id=c.id, resultado_id=r.id) }}" onsubmit="return confirm('¿Eliminar este RAE?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar RAE</button>
+          </form>
+        </details>
+      </div>
+      {% endfor %}
+
+      <details><summary>Agregar RAE</summary>
+        <form method="post" action="{{ url_for('catalog_add_resultado', programa_id=programa.id, competencia_id=c.id) }}" class="field-grid">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="field"><label>Código</label><input name="codigo" placeholder="RAE24"/></div>
+          <div class="field"><label>Denominación</label><input name="denominacion" required/></div>
+          <div class="field"><label>Duración (h)</label><input name="duracion" type="number" step="0.5" value="0"/></div>
+          <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Agregar RAE</button></div>
+        </form>
+      </details>
+
+      <div class="field-grid" style="margin-top:.75rem">
+        <div>
+          <h4>Conocimientos de proceso</h4>
+          <ul>{% for k in c.conocimientos_proceso %}
+            <li>
+              {{ k.texto }}
+              <details><summary>Editar</summary>
+                <form method="post" action="{{ url_for('catalog_update_conocimiento', programa_id=programa.id, competencia_id=c.id, conocimiento_id=k.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <input type="hidden" name="tipo" value="proceso"/>
+                  <textarea name="texto" rows="2">{{ k.texto }}</textarea>
+                  <button class="btn btn-secondary btn-small" type="submit">Guardar</button>
+                </form>
+              </details>
+              <form method="post" action="{{ url_for('catalog_delete_conocimiento', programa_id=programa.id, competencia_id=c.id, conocimiento_id=k.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar</button>
+              </form>
+            </li>
+          {% endfor %}</ul>
+          <form method="post" action="{{ url_for('catalog_add_conocimiento', programa_id=programa.id, competencia_id=c.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="tipo" value="proceso"/>
+            <textarea name="texto" rows="2" placeholder="Nuevo conocimiento de proceso" required></textarea>
+            <button class="btn btn-secondary btn-small" type="submit">Agregar conocimiento</button>
+          </form>
+        </div>
+        <div>
+          <h4>Conocimientos del saber</h4>
+          <ul>{% for k in c.conocimientos_saber %}
+            <li>
+              {{ k.texto }}
+              <details><summary>Editar</summary>
+                <form method="post" action="{{ url_for('catalog_update_conocimiento', programa_id=programa.id, competencia_id=c.id, conocimiento_id=k.id) }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                  <input type="hidden" name="tipo" value="saber"/>
+                  <textarea name="texto" rows="2">{{ k.texto }}</textarea>
+                  <button class="btn btn-secondary btn-small" type="submit">Guardar</button>
+                </form>
+              </details>
+              <form method="post" action="{{ url_for('catalog_delete_conocimiento', programa_id=programa.id, competencia_id=c.id, conocimiento_id=k.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar</button>
+              </form>
+            </li>
+          {% endfor %}</ul>
+          <form method="post" action="{{ url_for('catalog_add_conocimiento', programa_id=programa.id, competencia_id=c.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="tipo" value="saber"/>
+            <textarea name="texto" rows="2" placeholder="Nuevo conocimiento del saber" required></textarea>
+            <button class="btn btn-secondary btn-small" type="submit">Agregar conocimiento</button>
+          </form>
+        </div>
+      </div>
+
+      <h4>Criterios de evaluación</h4>
+      <ul>{% for k in c.criterios %}
+        <li>
+          {{ k.texto }}
+          <details><summary>Editar</summary>
+            <form method="post" action="{{ url_for('catalog_update_criterio', programa_id=programa.id, competencia_id=c.id, criterio_id=k.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <textarea name="texto" rows="2">{{ k.texto }}</textarea>
+              <button class="btn btn-secondary btn-small" type="submit">Guardar</button>
+            </form>
+          </details>
+          <form method="post" action="{{ url_for('catalog_delete_criterio', programa_id=programa.id, competencia_id=c.id, criterio_id=k.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar</button>
+          </form>
+        </li>
+      {% endfor %}</ul>
+      <form method="post" action="{{ url_for('catalog_add_criterio', programa_id=programa.id, competencia_id=c.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <textarea name="texto" rows="2" placeholder="Nuevo criterio de evaluación" required></textarea>
+        <button class="btn btn-secondary btn-small" type="submit">Agregar criterio</button>
+      </form>
+
+      <form method="post" action="{{ url_for('catalog_delete_competencia', programa_id=programa.id, competencia_id=c.id) }}" onsubmit="return confirm('¿Eliminar esta competencia y todos sus RAE?');" style="margin-top:.75rem">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar competencia</button>
+      </form>
+    </div>
+  </details>
+  {% else %}<p class="muted">Sin competencias registradas.</p>{% endfor %}
+
+  <details><summary>Agregar competencia</summary>
+    <form method="post" action="{{ url_for('catalog_add_competencia', programa_id=programa.id) }}" class="field-grid">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+      <div class="field"><label>Código norma</label><input name="codigo_norma"/></div>
+      <div class="field"><label>Nombre</label><input name="nombre" required/></div>
+      <div class="field"><label>Duración (h)</label><input name="duracion" type="number" step="0.5" value="0"/></div>
+      <div class="form-actions"><button class="btn btn-primary btn-small" type="submit">Agregar competencia</button></div>
+    </form>
+  </details>
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Ambientes</h2></div>
+  <ul>{% for a in programa.ambientes %}
+    <li>
+      <strong>{{ a.categoria }}:</strong> {{ a.nombre }}
+      <details><summary>Editar</summary>
+        <form method="post" action="{{ url_for('catalog_update_ambiente', programa_id=programa.id, ambiente_id=a.id) }}" class="field-grid">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="field"><label>Categoría</label><input name="categoria" value="{{ a.categoria }}"/></div>
+          <div class="field"><label>Nombre</label><input name="nombre" value="{{ a.nombre }}"/></div>
+          <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Guardar</button></div>
+        </form>
+      </details>
+      <form method="post" action="{{ url_for('catalog_delete_ambiente', programa_id=programa.id, ambiente_id=a.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar</button>
+      </form>
+    </li>
+  {% else %}<li class="muted">Sin ambientes.</li>{% endfor %}</ul>
+  <form method="post" action="{{ url_for('catalog_add_ambiente', programa_id=programa.id) }}" class="field-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="field"><label>Categoría</label><input name="categoria" placeholder="Área de conocimiento"/></div>
+    <div class="field"><label>Nombre</label><input name="nombre" required/></div>
+    <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Agregar ambiente</button></div>
+  </form>
+
+  <div class="panel__head"><h2>Materiales</h2></div>
+  <ul>{% for m in programa.materiales %}
+    <li>
+      <strong>{{ m.categoria }}:</strong> {{ m.nombre }} {% if m.cantidad %}({{ m.cantidad }}){% endif %}
+      <details><summary>Editar</summary>
+        <form method="post" action="{{ url_for('catalog_update_material', programa_id=programa.id, material_id=m.id) }}" class="field-grid">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="field"><label>Categoría</label><input name="categoria" value="{{ m.categoria }}"/></div>
+          <div class="field"><label>Nombre</label><input name="nombre" value="{{ m.nombre }}"/></div>
+          <div class="field"><label>Cantidad</label><input name="cantidad" value="{{ m.cantidad }}"/></div>
+          <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Guardar</button></div>
+        </form>
+      </details>
+      <form method="post" action="{{ url_for('catalog_delete_material', programa_id=programa.id, material_id=m.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <button class="btn btn-ghost btn-danger btn-small" type="submit">Eliminar</button>
+      </form>
+    </li>
+  {% else %}<li class="muted">Sin materiales.</li>{% endfor %}</ul>
+  <form method="post" action="{{ url_for('catalog_add_material', programa_id=programa.id) }}" class="field-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="field"><label>Categoría</label><input name="categoria" placeholder="Maquinaria y equipo"/></div>
+    <div class="field"><label>Nombre</label><input name="nombre" required/></div>
+    <div class="field"><label>Cantidad</label><input name="cantidad"/></div>
+    <div class="form-actions"><button class="btn btn-secondary btn-small" type="submit">Agregar material</button></div>
+  </form>
+</section>
+{% endblock %}

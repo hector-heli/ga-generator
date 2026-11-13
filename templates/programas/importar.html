@@ -1,0 +1,56 @@
+﻿{% extends "base.html" %}
+{% block title %}Importar programa (PDF) · Generador SENA{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Importar programa desde PDF</h1>
+    <p class="muted">Extrae competencias, RAE, conocimientos, criterios y ambientes/materiales del diseño curricular.</p>
+  </div>
+  <div class="page-head__actions"><a class="btn btn-secondary" href="{{ url_for('catalog_list') }}">Volver</a></div>
+</section>
+<section class="panel">
+  <form method="post" enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="step" value="preview"/>
+    <div class="field">
+      <label for="file">Archivo PDF del diseño curricular</label>
+      <input id="file" name="file" type="file" accept=".pdf" required/>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Analizar PDF</button></div>
+  </form>
+</section>
+
+{% if preview %}
+<section class="panel" style="margin-top:1rem">
+  <div class="panel__head"><h2>Vista previa</h2><span class="muted">{{ preview.meta.competencias_count }} competencias · {{ preview.meta.resultados_count }} RAE · {{ preview.meta.horas_competencias }} h (competencias)</span></div>
+  <p><strong>{{ preview.programa.denominacion or '(sin denominación)' }}</strong> · Código {{ preview.programa.codigo or '?' }} · Versión {{ preview.programa.version or '?' }} · Total {{ preview.programa.horas_total or '?' }} h</p>
+  {% if existing %}
+  <div class="flash flash--warn">Ya existe un programa con código {{ existing.codigo }} versión {{ existing.version or '(vacía)' }}. Puede reemplazarlo o crear una nueva versión.</div>
+  {% endif %}
+  {% if preview.warnings %}
+  <details open><summary>Advertencias ({{ preview.warnings|length }})</summary>
+    <ul>{% for w in preview.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+  </details>
+  {% endif %}
+  <details><summary>Competencias detectadas</summary>
+    <ul>
+    {% for c in preview.competencias %}
+      <li><strong>{{ c.codigo_norma }}</strong> {{ c.nombre }} — {{ c.duracion }} h, {{ c.resultados|length }} RAE
+        {% if c.resultados %}<ul>{% for r in c.resultados %}<li>{{ r.codigo }} {{ r.denominacion }} ({{ r.duracion }} h)</li>{% endfor %}</ul>{% endif %}
+      </li>
+    {% endfor %}
+    </ul>
+  </details>
+  <form method="post" class="stack" style="margin-top:1rem">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <input type="hidden" name="step" value="save"/>
+    <input type="hidden" name="preview_token" value="{{ preview_token }}"/>
+    {% if existing %}
+    <div class="field"><label><input type="checkbox" name="replace" value="1"/> Reemplazar programa existente ({{ existing.denominacion }})</label></div>
+    <div class="field"><label for="version">Versión (ajústela si desea crear una nueva)</label><input id="version" name="version" value="{{ preview.programa.version }}"/></div>
+    {% endif %}
+    <div class="form-actions"><button class="btn btn-primary" type="submit">Guardar en catálogo</button></div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

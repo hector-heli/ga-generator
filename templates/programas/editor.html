@@ -1,0 +1,27 @@
+﻿{% extends "base.html" %}
+{% block title %}{{ 'Editar' if programa else 'Nuevo' }} programa · Generador SENA{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div><h1>{{ 'Editar programa' if programa else 'Nuevo programa' }}</h1></div>
+  <div class="page-head__actions"><a class="btn btn-secondary" href="{{ url_for('catalog_list') }}">Volver</a></div>
+</section>
+<form method="post" class="stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <section class="panel">
+    <div class="field-grid">
+      <div class="field"><label>Denominación</label><input name="denominacion" value="{{ programa.denominacion if programa else '' }}" required/></div>
+      <div class="field"><label>Código</label><input name="codigo" value="{{ programa.codigo if programa else '' }}"/></div>
+      <div class="field"><label>Versión</label><input name="version" value="{{ programa.version if programa else '' }}"/></div>
+      <div class="field"><label>Vigencia</label><input name="vigencia" value="{{ programa.vigencia if programa else '' }}"/></div>
+      <div class="field"><label>Horas lectiva</label><input name="horas_lectiva" type="number" step="0.5" value="{{ programa.horas_lectiva if programa else 0 }}"/></div>
+      <div class="field"><label>Horas productiva</label><input name="horas_productiva" type="number" step="0.5" value="{{ programa.horas_productiva if programa else 0 }}"/></div>
+      <div class="field"><label>Horas total</label><input name="horas_total" type="number" step="0.5" value="{{ programa.horas_total if programa else 0 }}"/></div>
+      <div class="field"><label>Tipo</label><input name="tipo" value="{{ programa.tipo if programa else '' }}"/></div>
+      <div class="field"><label>Título obtenido</label><input name="titulo_obtenido" value="{{ programa.titulo_obtenido if programa else '' }}"/></div>
+    </div>
+    <div class="field"><label>Justificación</label><textarea name="justificacion" rows="5">{{ programa.justificacion if programa else '' }}</textarea></div>
+    <div class="field"><label>Fuente</label><input name="fuente" value="{{ programa.fuente if programa else '' }}"/></div>
+  </section>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">Guardar</button></div>
+</form>
+{% endblock %}

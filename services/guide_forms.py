@@ -109,6 +109,11 @@ IDENTIFICATION_FIELDS = (
     "competencia",
     "resultados_aprendizaje",
     "duracion_horas",
+    "programa_id",
+    "proyecto_id",
+    "fase_id",
+    "actividad_id",
+    "resultados_ids",
 )
 
 
@@ -118,6 +123,13 @@ def parse_identification(form, guide):
         if field in form:
             if field == "duracion_horas":
                 identification[field] = _hours(form.get(field))
+            elif field == "resultados_ids":
+                raw = form.get(field, "")
+                if isinstance(raw, (list, tuple)):
+                    values = raw
+                else:
+                    values = str(raw or "").split(",")
+                identification[field] = [item.strip() for item in values if item.strip()]
             else:
                 identification[field] = _text(form.get(field))
     return guide

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% from "_forms.html" import field, textarea, csrf, section_feedback %}
 {% from "_guide_ui.html" import page_head, guide_meta %}
 
@@ -9,8 +9,57 @@
 {{ guide_meta(summary) }}
 {{ section_feedback(validation, "identificacion") }}
 
-<form method="post" action="{{ url_for('guide_identificacion', guide_id=guide_id) }}" class="stack">
+<section class="panel" id="catalog-prefill"
+  data-programas-url="{{ url_for('api_catalog_programas') }}"
+  data-proyectos-url="{{ url_for('api_catalog_proyectos', programa_id='__PROGRAMA__') }}"
+  data-proyecto-url="{{ url_for('api_catalog_proyecto', proyecto_id='__PROYECTO__') }}">
+<div class="panel__head">
+<h2>Cargar desde catálogo</h2>
+<span class="muted">Seleccione programa, proyecto, actividad y uno o varios RAE</span>
+</div>
+<div class="field-grid">
+<div class="field">
+<label for="cat-programa">Programa</label>
+<select id="cat-programa"><option value="">Cargando programas…</option></select>
+</div>
+<div class="field">
+<label for="cat-proyecto">Proyecto formativo</label>
+<select id="cat-proyecto"><option value="">Seleccione un programa</option></select>
+</div>
+<div class="field">
+<label for="cat-fase">Fase</label>
+<select id="cat-fase"><option value="">Seleccione un proyecto</option></select>
+</div>
+<div class="field">
+<label for="cat-actividad">Actividad del proyecto</label>
+<select id="cat-actividad"><option value="">Seleccione una fase</option></select>
+</div>
+<div class="field">
+<label for="cat-competencia">Competencia</label>
+<select id="cat-competencia"><option value="">Todas las del programa</option></select>
+</div>
+</div>
+<div class="field">
+<label for="cat-raes">Resultados de aprendizaje (RAE)</label>
+<select id="cat-raes" multiple size="10"><option value="">Seleccione un programa</option></select>
+<div class="field__hint">Use Ctrl/Clic para seleccionar varios RAE. Se concatenarán los resultados y se sumará la duración. Si elige una actividad, solo verá sus RAE.</div>
+</div>
+<div class="form-actions">
+<button class="btn btn-secondary" type="button" id="cat-apply">Aplicar a la identificación</button>
+<button class="btn btn-ghost" type="button" id="cat-clear">Limpiar selección</button>
+<a class="btn btn-ghost" href="{{ url_for('catalog_list') }}">Gestionar programas</a>
+<a class="btn btn-ghost" href="{{ url_for('project_list') }}">Gestionar proyectos</a>
+<span id="cat-status" class="muted"></span>
+</div>
+</section>
+
+<form method="post" action="{{ url_for('guide_identificacion', guide_id=guide_id) }}" class="stack" id="ident-form">
 {{ csrf() }}
+<input type="hidden" name="programa_id" id="ident-programa-id" value="{{ guide.identificacion.programa_id }}"/>
+<input type="hidden" name="proyecto_id" id="ident-proyecto-id" value="{{ guide.identificacion.proyecto_id }}"/>
+<input type="hidden" name="fase_id" id="ident-fase-id" value="{{ guide.identificacion.fase_id }}"/>
+<input type="hidden" name="actividad_id" id="ident-actividad-id" value="{{ guide.identificacion.actividad_id }}"/>
+<input type="hidden" name="resultados_ids" id="ident-resultados-ids" value="{{ guide.identificacion.resultados_ids|join(',') }}"/>
 <section class="panel">
 <div class="panel__head">
 <h2>Datos del programa</h2>
@@ -30,7 +79,7 @@
 <h2>Competencia y resultados</h2>
 </div>
 {{ textarea("Competencia", "competencia", guide.identificacion.competencia, rows=3, hint="Transcriba la competencia del programa de formación.", placeholder="Ej. Implementar sistemas mecatrónicos...") }}
-{{ textarea("Resultados de aprendizaje", "resultados_aprendizaje", guide.identificacion.resultados_aprendizaje, rows=4, hint="Incluya el código del RAE cuando exista (por ejemplo, RAE23).") }}
+{{ textarea("Resultados de aprendizaje", "resultados_aprendizaje", guide.identificacion.resultados_aprendizaje, rows=5, hint="Incluya el código del RAE cuando exista (por ejemplo, RAE23).") }}
 </section>
 
 <div class="form-actions">
@@ -38,4 +87,6 @@
 <a class="btn btn-ghost" href="{{ url_for('guide_presentacion', guide_id=guide_id) }}">Ir a presentación →</a>
 </div>
 </form>
+
+<script src="{{ url_for('static', filename='js/catalog_prefill.js') }}"></script>
 {% endblock %}

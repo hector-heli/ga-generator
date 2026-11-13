@@ -88,6 +88,11 @@ def empty_guide():
             "competencia": "",
             "resultados_aprendizaje": "",
             "duracion_horas": 0,
+            "programa_id": "",
+            "proyecto_id": "",
+            "fase_id": "",
+            "actividad_id": "",
+            "resultados_ids": [],
         },
         "presentacion": {
             "bloques": [
@@ -193,6 +198,11 @@ def normalize_guide(raw):
                 "competencia": _as_text(identification.get("competencia")),
                 "resultados_aprendizaje": _as_text(identification.get("resultados_aprendizaje")),
                 "duracion_horas": _as_hours(identification.get("duracion_horas")),
+                "programa_id": _as_text(identification.get("programa_id")),
+                "proyecto_id": _as_text(identification.get("proyecto_id")),
+                "fase_id": _as_text(identification.get("fase_id")),
+                "actividad_id": _as_text(identification.get("actividad_id")),
+                "resultados_ids": [_as_text(item) for item in _as_list(identification.get("resultados_ids")) if _as_text(item)],
             }
         )
 
