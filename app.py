@@ -16,13 +16,14 @@ from flask import (
     redirect,
     render_template,
     request,
+    send_file,
     send_from_directory,
     session,
     url_for,
 )
 
 from config import DRAFT_DIR, OUTPUT_DIR, TEMP_DIR, public_config, save_config
-from services import catalog_importer, catalog_store, project_importer, store
+from services import catalog_importer, catalog_store, catalog_tree, project_importer, store
 from services.defaults import (
     MOMENT_ORDER,
     MOMENTS,
@@ -850,6 +851,63 @@ def catalog_detail(programa_id):
         abort(404)
     proyectos = catalog_store.list_proyectos(programa_id=programa_id)
     return render_template("programas/detalle.html", programa=programa, proyectos=proyectos)
+
+
+def _read_pdf_field(field_name, label):
+    file = request.files.get(field_name)
+    if not file or not file.filename:
+        raise ValueError(f"Adjunte el PDF de {label}.")
+    if not file.filename.lower().endswith(".pdf"):
+        raise ValueError(f"El archivo de {label} debe tener extensión .pdf.")
+    data = file.read()
+    if not data:
+        raise ValueError(f"El PDF de {label} está vacío.")
+    if b"%PDF-" not in data[:1024]:
+        raise ValueError(f"El archivo de {label} no parece ser un PDF válido.")
+    return file.filename, data
+
+
+@app.get("/programas/<programa_id>/andamiaje")
+def catalog_andamiaje(programa_id):
+    if not catalog_store.valid_id(programa_id):
+        abort(404)
+    programa = catalog_store.get_programa_detalle(programa_id)
+    if not programa:
+        abort(404)
+    tree = catalog_tree.build_tree(programa)
+    return render_template("programas/andamiaje.html", programa=programa, tree=tree)
+
+
+@app.post("/programas/<programa_id>/andamiaje.zip")
+def catalog_andamiaje_zip(programa_id):
+    _check_csrf()
+    if not catalog_store.valid_id(programa_id):
+        abort(404)
+    programa = catalog_store.get_programa_detalle(programa_id)
+    if not programa:
+        abort(404)
+    try:
+        pdf_diseno = _read_pdf_field("pdf_diseno", "diseño curricular")
+        pdf_proyecto = _read_pdf_field("pdf_proyecto", "proyecto formativo")
+        meta = {
+            "equipo_curricular": request.form.get("equipo_curricular", "").strip(),
+            "regional_centro": request.form.get("regional_centro", "").strip(),
+            "fecha_elaboracion": request.form.get("fecha_elaboracion", "").strip(),
+        }
+        archive = catalog_tree.build_zip(programa, pdf_diseno, pdf_proyecto, meta)
+    except ValueError as exc:
+        flash(str(exc), "error")
+        return redirect(url_for("catalog_andamiaje", programa_id=programa_id))
+    except Exception as exc:
+        flash(f"No se pudo generar el andamiaje: {exc}", "error")
+        return redirect(url_for("catalog_andamiaje", programa_id=programa_id))
+
+    return send_file(
+        archive,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=catalog_tree.zip_filename(programa),
+    )
 
 
 @app.route("/programas/<programa_id>/editar", methods=["GET", "POST"])

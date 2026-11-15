@@ -1,4 +1,3 @@
-import copy
 import re
 from pathlib import Path
 
@@ -7,18 +6,33 @@ from docx.enum.table import WD_ALIGN_VERTICAL, WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Pt, RGBColor, Twips
+from docx.shared import Pt, RGBColor
 
 from config import TEMPLATE_PATH
 from services.defaults import MOMENT_ORDER, MOMENTS, iter_activities
 from services.evidence import derive_evidence
 
-FONT = "Century Gothic"
+BULLET_STYLE = "Lista multicolor - Énfasis 11"
 BLUE_FILL = "C8F0FA"
 DARK_FILL = "262626"
 WHITE = "FFFFFF"
 
 MARKUP = re.compile(r"(\*\*.+?\*\*|\*[^*]+?\*)")
+
+
+def _style_name(doc, *candidates, fallback="Normal"):
+    """Devuelve el primer estilo disponible de la plantilla."""
+    for name in candidates:
+        try:
+            doc.styles[name]
+            return name
+        except KeyError:
+            continue
+    return fallback
+
+
+def _bullet_style(doc):
+    return _style_name(doc, BULLET_STYLE, "List Paragraph")
 
 
 def _set_cell_width(cell, twips):
@@ -43,9 +57,11 @@ def _set_grid_width(table, widths):
             grid.append(column)
 
 
-def _set_table_properties(table, widths):
+def _set_table_properties(table, widths, style_name=None):
     table.alignment = WD_TABLE_ALIGNMENT.LEFT
     table.autofit = False
+    if style_name:
+        table.style = style_name
     tbl_pr = table._tbl.tblPr
     tbl_w = tbl_pr.find(qn("w:tblW"))
     if tbl_w is None:
@@ -64,18 +80,19 @@ def _set_table_properties(table, widths):
         layout = OxmlElement("w:tblLayout")
         tbl_pr.append(layout)
     layout.set(qn("w:type"), "fixed")
-    borders = OxmlElement("w:tblBorders")
-    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
-        element = OxmlElement(f"w:{edge}")
-        element.set(qn("w:val"), "single")
-        element.set(qn("w:sz"), "4")
-        element.set(qn("w:space"), "0")
-        element.set(qn("w:color"), "000000")
-        borders.append(element)
-    existing = tbl_pr.find(qn("w:tblBorders"))
-    if existing is not None:
-        tbl_pr.remove(existing)
-    tbl_pr.append(borders)
+    if not style_name:
+        borders = OxmlElement("w:tblBorders")
+        for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+            element = OxmlElement(f"w:{edge}")
+            element.set(qn("w:val"), "single")
+            element.set(qn("w:sz"), "4")
+            element.set(qn("w:space"), "0")
+            element.set(qn("w:color"), "000000")
+            borders.append(element)
+        existing = tbl_pr.find(qn("w:tblBorders"))
+        if existing is not None:
+            tbl_pr.remove(existing)
+        tbl_pr.append(borders)
     _set_grid_width(table, widths)
     for row in table.rows:
         for index, cell in enumerate(row.cells):
@@ -97,7 +114,7 @@ def _shade(cell, fill, theme_tint=None):
         shd.set(qn("w:themeFillTint"), theme_tint)
 
 
-def _set_run(run, font=FONT, size=None, bold=None, italic=None, color=None):
+def _set_run(run, font=None, size=None, bold=None, italic=None, color=None):
     if font:
         run.font.name = font
         r_pr = run._element.get_or_add_rPr()
@@ -117,7 +134,7 @@ def _set_run(run, font=FONT, size=None, bold=None, italic=None, color=None):
         run.font.color.rgb = RGBColor.from_string(color)
 
 
-def _add_runs(paragraph, text, size=None, bold=False, italic=False, color=None):
+def _add_runs(paragraph, text, size=None, bold=None, italic=None, color=None):
     text = str(text or "")
     for part in MARKUP.split(text):
         if not part:
@@ -147,9 +164,50 @@ def _add_spacer(doc):
     return paragraph
 
 
-def _add_heading(doc, text, level):
-    paragraph = doc.add_paragraph(style=f"Heading {level}")
+def _heading_style(doc, level):
+    """Use el estilo de título disponible más cercano al nivel solicitado.
+
+    Algunas plantillas no definen ``Heading 4``. Para no repetir el nivel del
+    título padre, los niveles profundos caen en ``Normal`` y ``_add_heading``
+    los resalta en negrita; los niveles 1 a 3 caen al título inferior existente.
+    """
+    name = f"Heading {level}"
+    try:
+        doc.styles[name]
+        return name
+    except KeyError:
+        pass
+    if level >= 4:
+        return "Normal"
+    for candidate in range(level - 1, 0, -1):
+        name = f"Heading {candidate}"
+        try:
+            doc.styles[name]
+            return name
+        except KeyError:
+            continue
+    return "Normal"
+
+
+def _add_heading(doc, text, level, page_break=False):
+    style = _heading_style(doc, level)
+    paragraph = doc.add_paragraph(style=style)
+    if page_break:
+        paragraph.paragraph_format.page_break_before = True
     _add_runs(paragraph, text)
+    if style == "Normal":
+        for run in paragraph.runs:
+            run.bold = True
+    return paragraph
+
+
+def _add_format_title(doc, text):
+    """Título del formato, con el estilo que usa la plantilla."""
+    paragraph = doc.add_paragraph(style="Normal")
+    paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    paragraph.paragraph_format.space_after = Pt(0)
+    paragraph.paragraph_format.line_spacing = 1.5
+    _add_runs(paragraph, text, size=12, bold=True)
     return paragraph
 
 
@@ -160,47 +218,57 @@ def _add_body(doc, text, bold=False):
         if not line:
             continue
         paragraph = doc.add_paragraph(style="Normal")
+        paragraph.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         _add_runs(paragraph, line, bold=bold)
 
 
 def _add_bullet(doc, text):
-    paragraph = doc.add_paragraph(style="List Paragraph")
-    _add_runs(paragraph, _clean_markdown(text))
+    text = _clean_markdown(text)
+    if re.match(r"^\d+[.)]\s", text):
+        paragraph = doc.add_paragraph(style=_style_name(doc, "List Paragraph", fallback="Normal"))
+    else:
+        paragraph = doc.add_paragraph(style=_bullet_style(doc))
+    _add_runs(paragraph, text)
 
 
 def _add_label_value(doc, label, value):
-    paragraph = doc.add_paragraph(style="Normal")
-    run = paragraph.add_run(label)
-    _set_run(run, bold=True, color="000000")
-    if str(value or "").strip():
-        value_paragraph = doc.add_paragraph(style="Normal")
-        _add_runs(value_paragraph, value)
-    else:
-        _add_spacer(doc)
+    """Campo de identificación como una sola viñeta de la plantilla."""
+    paragraph = doc.add_paragraph(style=_bullet_style(doc))
+    text = str(label or "").strip()
+    value = str(value or "").strip()
+    if value:
+        text = f"{text} {value}".strip()
+    _add_runs(paragraph, text)
+    return paragraph
 
 
 def _add_prefixed(doc, prefix, value):
     paragraph = doc.add_paragraph(style="Normal")
     run = paragraph.add_run(prefix)
-    _set_run(run, bold=True, color="000000")
+    _set_run(run, bold=True)
     if str(value or "").strip():
         _add_runs(paragraph, " " + str(value))
     return paragraph
 
 
 def _set_cell_text(cell, text, size=8, bold=False, color=None, align=None, line_spacing=1.0):
-    cell.text = ""
-    paragraphs = []
+    paragraphs = cell.paragraphs
+    first = paragraphs[0]
+    for extra in paragraphs[1:]:
+        extra._element.getparent().remove(extra._element)
+    for run in list(first.runs):
+        run._element.getparent().remove(run._element)
+    rendered = []
     lines = str(text or "").splitlines() or [""]
     for index, line in enumerate(lines):
-        paragraph = cell.paragraphs[0] if index == 0 else cell.add_paragraph()
+        paragraph = first if index == 0 else cell.add_paragraph()
         paragraph.paragraph_format.space_after = Pt(0)
         paragraph.paragraph_format.line_spacing = line_spacing
         if align is not None:
             paragraph.alignment = align
         _add_runs(paragraph, line, size=size, bold=bold, color=color)
-        paragraphs.append(paragraph)
-    return paragraphs
+        rendered.append(paragraph)
+    return rendered
 
 
 def _add_evidence_box(doc, activity, evidence_items):
@@ -234,7 +302,7 @@ def _add_evidence_box(doc, activity, evidence_items):
     _set_run(run, size=12, bold=True, color="000000")
 
     for item in evidence_items:
-        paragraph = body_cell.add_paragraph(style="List Paragraph")
+        paragraph = body_cell.add_paragraph(style="Normal")
         paragraph.paragraph_format.space_after = Pt(0)
         paragraph.paragraph_format.line_spacing = 1.5
         text = f"{item['codigo']}. {item['descripcion']}" if item["codigo"] != "Pendiente" else "Pendiente por definir"
@@ -267,7 +335,8 @@ def _add_evidence_matrix(doc, guide, activity_map):
                 groups.append((activity, items))
 
     table = doc.add_table(rows=1 + len(groups), cols=6)
-    _set_table_properties(table, widths)
+    grid_style = _style_name(doc, "Table Grid", fallback="")
+    _set_table_properties(table, widths, style_name=grid_style or None)
     for index, header in enumerate(headers):
         cell = table.cell(0, index)
         _shade(cell, DARK_FILL)
@@ -275,7 +344,7 @@ def _add_evidence_matrix(doc, guide, activity_map):
         _set_cell_text(
             cell,
             header,
-            size=8,
+            size=12,
             bold=True,
             color=WHITE,
             align=WD_ALIGN_PARAGRAPH.CENTER,
@@ -349,12 +418,12 @@ def _add_materials(doc, activity):
         return
     _add_prefixed(doc, "Materiales de formación:", "")
     if consumible:
-        paragraph = doc.add_paragraph(style="List Paragraph")
+        paragraph = doc.add_paragraph(style=_bullet_style(doc))
         run = paragraph.add_run("Consumible: ")
         _set_run(run, bold=True)
         _add_runs(paragraph, consumible)
     if devolutivo:
-        paragraph = doc.add_paragraph(style="List Paragraph")
+        paragraph = doc.add_paragraph(style=_bullet_style(doc))
         run = paragraph.add_run("Devolutivo: ")
         _set_run(run, bold=True)
         _add_runs(paragraph, devolutivo)
@@ -406,16 +475,16 @@ def _add_identification(doc, guide):
     _add_label_value(doc, "Actividad de Proyecto Formativo (si aplica):", identification.get("actividad_proyecto"))
     _add_label_value(doc, "Competencia:", identification.get("competencia"))
     _add_label_value(doc, "Resultados de Aprendizaje:", identification.get("resultados_aprendizaje"))
-    paragraph = doc.add_paragraph(style="Normal")
-    run = paragraph.add_run("Duración de la Guía de Aprendizaje (horas): ")
-    _set_run(run, bold=True, color="000000")
-    run = paragraph.add_run(f"{float(identification.get('duracion_horas') or 0):g} H")
-    _set_run(run, bold=True, color="000000")
+    _add_label_value(
+        doc,
+        "Duración de la Guía de Aprendizaje (horas):",
+        f"{float(identification.get('duracion_horas') or 0):g} H",
+    )
     _add_spacer(doc)
 
 
 def _add_presentation(doc, guide):
-    _add_heading(doc, "PRESENTACIÓN", 2)
+    _add_heading(doc, "PRESENTACIÓN", 2, page_break=True)
     _add_spacer(doc)
     for block in guide["presentacion"].get("bloques", []):
         text = str(block.get("texto") or "")
@@ -432,7 +501,7 @@ def _add_presentation(doc, guide):
 
 
 def _add_activities(doc, guide, activity_map):
-    _add_heading(doc, "FORMULACIÓN DE LAS ACTIVIDADES DE APRENDIZAJE", 2)
+    _add_heading(doc, "FORMULACIÓN DE LAS ACTIVIDADES DE APRENDIZAJE", 2, page_break=True)
     for moment_id in MOMENT_ORDER:
         moment = guide["momentos"][moment_id]
         title = moment.get("titulo") or MOMENTS[moment_id]["titulo"]
@@ -457,7 +526,7 @@ def build_docx(guide, output_path):
         body.remove(child)
 
     _add_heading(document, guide["meta"].get("titulo_proceso", "PROCESO DE GESTIÓN DE FORMACIÓN PROFESIONAL INTEGRAL"), 1)
-    _add_heading(document, guide["meta"].get("titulo_formato", "FORMATO GUÍA DE APRENDIZAJE"), 1)
+    _add_format_title(document, guide["meta"].get("titulo_formato", "FORMATO GUÍA DE APRENDIZAJE"))
     _add_spacer(document)
     _add_identification(document, guide)
     _add_presentation(document, guide)
@@ -467,11 +536,12 @@ def build_docx(guide, output_path):
         document,
         "PLANTEAMIENTO DE EVIDENCIAS DE APRENDIZAJE PARA LA EVALUACIÓN EN EL PROCESO FORMATIVO.",
         2,
+        page_break=True,
     )
     _add_evidence_matrix(document, guide, activity_map)
     _add_spacer(document)
 
-    _add_heading(document, "GLOSARIO DE TÉRMINOS", 2)
+    _add_heading(document, "GLOSARIO DE TÉRMINOS", 2, page_break=True)
     if guide.get("glosario"):
         for entry in guide["glosario"]:
             term = str(entry.get("termino") or "").strip()
@@ -485,32 +555,32 @@ def build_docx(guide, output_path):
             _add_runs(paragraph, definition)
     _add_spacer(document)
 
-    _add_heading(document, "REFERENTES BIBLIOGRÁFICOS", 2)
+    _add_heading(document, "REFERENTES BIBLIOGRÁFICOS", 2, page_break=True)
     for reference in guide.get("referencias", []):
         text = reference.get("texto") if isinstance(reference, dict) else reference
         if str(text or "").strip():
             _add_bullet(document, text)
     _add_spacer(document)
 
-    _add_heading(document, "CONTROL DEL DOCUMENTO", 2)
+    _add_heading(document, "CONTROL DEL DOCUMENTO", 2, page_break=True)
     authors = guide.get("control_documento", {}).get("autores", [])
     _add_control_table(
         document,
         ["", "Nombre", "Cargo", "Dependencia", "Fecha"],
         "Autor (es)",
         authors,
-        [1230, 2706, 1559, 1701, 2551],
+        [1242, 2694, 1559, 1701, 2551],
         ["nombre", "cargo", "dependencia", "fecha"],
     )
     _add_spacer(document)
 
-    _add_heading(document, "CONTROL DE CAMBIOS (diligenciar únicamente si realiza ajustes a la guía)", 2)
+    _add_heading(document, "CONTROL DE CAMBIOS (diligenciar únicamente si realiza ajustes a la guía)", 2, page_break=True)
     _add_control_table(
         document,
         ["", "Nombre", "Cargo", "Dependencia", "Fecha", "Razón del Cambio"],
         "Autor (es)",
         guide.get("control_cambios", []),
-        [1305, 2604, 1550, 1559, 795, 1934],
+        [1235, 2674, 1550, 1559, 795, 1934],
         ["nombre", "cargo", "dependencia", "fecha", "razon"],
     )
 

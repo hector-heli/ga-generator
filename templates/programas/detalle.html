@@ -8,10 +8,16 @@
     <p class="muted">{{ programa.horas_total or 0 }} h · {{ programa.competencias|length }} competencias · {{ programa.ambientes|length }} ambientes · {{ programa.materiales|length }} materiales</p>
   </div>
   <div class="page-head__actions">
+    <a class="btn btn-secondary" href="{{ url_for('catalog_andamiaje', programa_id=programa.id) }}">Andamiaje ZIP</a>
     <a class="btn btn-secondary" href="{{ url_for('catalog_edit', programa_id=programa.id) }}">Editar datos</a>
     <a class="btn btn-secondary" href="{{ url_for('project_new', programa_id=programa.id) }}">Nuevo proyecto</a>
     <a class="btn btn-primary" href="{{ url_for('catalog_import') }}">Importar otro PDF</a>
   </div>
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Andamiaje de carpetas</h2><a class="btn btn-small btn-primary" href="{{ url_for('catalog_andamiaje', programa_id=programa.id) }}">Generar andamiaje ZIP</a></div>
+  <p class="muted">Descargue la estructura del programa con una carpeta por competencia y resultado de aprendizaje. Cada RAE incluye guía DOCX, planeación XLSX y PTC RAE; los PDF de diseño curricular y proyecto formativo se solicitan al generar la descarga.</p>
 </section>
 
 <section class="panel">

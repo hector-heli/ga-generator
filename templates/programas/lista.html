@@ -28,6 +28,7 @@
     </div>
     <div class="guide-card__actions">
       <a class="btn btn-secondary" href="{{ url_for('catalog_detail', programa_id=p.id) }}">Abrir</a>
+      <a class="btn btn-secondary" href="{{ url_for('catalog_andamiaje', programa_id=p.id) }}">Andamiaje ZIP</a>
       <a class="btn btn-ghost" href="{{ url_for('catalog_edit', programa_id=p.id) }}">Editar</a>
       <form method="post" action="{{ url_for('catalog_delete', programa_id=p.id) }}" onsubmit="return confirm('¿Eliminar este programa y todo su contenido?');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Andamiaje · {{ programa.denominacion }}{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <p class="guide-card__eyebrow">{{ programa.codigo or 'Sin código' }}{% if programa.version %} · v{{ programa.version }}{% endif %}</p>
+    <h1>Andamiaje de carpetas</h1>
+    <p class="muted">{{ programa.denominacion }} · {{ programa.competencias|length }} competencias</p>
+  </div>
+  <div class="page-head__actions">
+    <a class="btn btn-secondary" href="{{ url_for('catalog_detail', programa_id=programa.id) }}">Volver al programa</a>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Descargar ZIP</h2></div>
+  {% include "programas/_andamiaje_form.html" %}
+</section>
+
+<section class="panel">
+  <div class="panel__head"><h2>Contenido del ZIP</h2></div>
+  <p class="muted">Los PDF quedan una sola vez en la raíz del programa. Cada resultado de aprendizaje tiene su propia carpeta con guía, planeación y PTC RAE.</p>
+  <pre class="muted" style="white-space:pre-wrap;margin:0">{{ tree.root }}/
+  Diseño curricular - &lt;archivo&gt;.pdf
+  Proyecto formativo - &lt;archivo&gt;.pdf{% for competencia in tree.competencias %}
+  {{ competencia.name }}/{% for rae in competencia.resultados %}
+    {{ rae.name }}/
+      {{ rae.files[0] }}
+      {{ rae.files[1] }}
+      {{ rae.files[2] }}{% endfor %}{% endfor %}</pre>
+</section>
+{% endblock %}

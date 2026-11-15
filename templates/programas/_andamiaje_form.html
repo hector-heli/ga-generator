@@ -1,0 +1,28 @@
+{# Formulario compartido para descargar el andamiaje en ZIP. #}
+<form method="post" action="{{ url_for('catalog_andamiaje_zip', programa_id=programa.id) }}" enctype="multipart/form-data" class="field-grid">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <div class="field">
+    <label for="pdf_diseno">PDF del diseño curricular</label>
+    <input id="pdf_diseno" name="pdf_diseno" type="file" accept="application/pdf,.pdf" required/>
+  </div>
+  <div class="field">
+    <label for="pdf_proyecto">PDF del proyecto formativo</label>
+    <input id="pdf_proyecto" name="pdf_proyecto" type="file" accept="application/pdf,.pdf" required/>
+  </div>
+  <div class="field">
+    <label for="equipo_curricular">Equipo de gestión curricular (opcional)</label>
+    <input id="equipo_curricular" name="equipo_curricular" placeholder="Nombres y apellidos"/>
+  </div>
+  <div class="field">
+    <label for="regional_centro">Regional y centro de formación (opcional)</label>
+    <input id="regional_centro" name="regional_centro" placeholder="Regional Antioquia - Centro Metalmecánico"/>
+  </div>
+  <div class="field">
+    <label for="fecha_elaboracion">Fecha de elaboración (opcional)</label>
+    <input id="fecha_elaboracion" name="fecha_elaboracion" type="date"/>
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-primary" type="submit">Descargar andamiaje ZIP</button>
+  </div>
+</form>
+<p class="muted">Los PDF se solicitan en cada descarga y no se almacenan en el servidor. El ZIP incluye una guía DOCX, una planeación XLSX y el PTC RAE por cada resultado de aprendizaje.</p>

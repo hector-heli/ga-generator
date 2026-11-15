@@ -123,6 +123,35 @@ Las pruebas usan una base SQLite temporal por prueba y cubren, entre otros: guar
 - `GET/POST /configuracion` — configuración de IA
 - `POST /configuracion/probar` — probar conexión con el proveedor
 - `GET /download/<archivo>` — descarga
+- `GET /programas` — catálogo de programas de formación
+- `GET/POST /programas/importar` — importar un programa desde PDF
+- `GET/POST /programas/nuevo` — crear un programa manualmente
+- `GET /programas/<id>` — detalle del programa con competencias y RAE
+- `GET/POST /programas/<id>/editar` — editar datos básicos
+- `POST /programas/<id>/eliminar` — eliminar el programa
+- `GET /programas/<id>/andamiaje` — formulario del andamiaje
+- `POST /programas/<id>/andamiaje.zip` — descargar el andamiaje en ZIP
+
+## Andamiaje de programas
+
+Desde la lista o el detalle de un programa puede generar un ZIP con la estructura de carpetas del programa:
+
+```text
+224312-AUTOMATIZACION-v1/
+  Diseño curricular - <archivo>.pdf
+  Proyecto formativo - <archivo>.pdf
+  N1 - Programar/
+    RAE23 - Sistemas embebidos/
+      GA - RAE23 - Sistemas embebidos.docx
+      Planeacion pedagogica - RAE23 - Sistemas embebidos.xlsx
+      PTC RAE - RAE23 - Sistemas embebidos.xlsm
+```
+
+- Los PDF de diseño curricular y proyecto formativo se solicitan **en cada descarga** y no se guardan en el servidor. Se incluyen una sola vez en la raíz del programa.
+- La guía DOCX parte de `templates_ga/GA_GFPI-F-135_plantilla.docx` y respeta sus estilos: tipografía, títulos numerados, viñetas, tablas y encabezado/pie con logo. Cada sección inicia en una página nueva, excepto la identificación, que comparte la primera página con el título del formato. Se prellena con programa, competencia, resultado, proyecto, fase y actividad cuando el RAE está vinculado a una actividad del proyecto formativo.
+- La planeación XLSX parte de `templates_ga/GPFI-F-134V05Formatoplaneacionpedagogica.xlsx` y conserva logos, imágenes y estilos porque se edita el XML interno del archivo.
+- El PTC RAE parte de `templates_ga/PTC  RAE xxx.xlsm` y conserva las macros. Solo se prefillan programa, competencia y resultado; ficha, aprendices, horarios y evidencias los completa el instructor.
+- Los nombres de carpetas y archivos se sanean para Windows y se deduplican cuando hay competencias o RAE repetidos.
 
 ## API heredada
 
@@ -156,6 +185,11 @@ services/validation.py  Reglas de validación por sección y globales
 services/suggestions.py Autocompletado por plantillas
 services/llm.py         Cliente de proveedor LLM compatible con OpenAI
 services/docx_builder.py Generación del DOCX
+services/catalog_store.py Persistencia SQLite del catálogo y proyectos
+services/catalog_tree.py Andamiaje de carpetas y ZIP del catálogo
+services/catalog_guides.py Guías DOCX prediligenciadas por RAE
+services/planeacion_xlsx.py Planeación pedagógica XLSX prediligenciada
+services/ptc_xlsm.py Copia y prellenado parcial del PTC RAE
 services/importers/     Importadores DOCX/XLSX/PDF
 templates/              Interfaz multipágina (base, panel, secciones)
 static/css/style.css    Tokens SENA, temas y componentes

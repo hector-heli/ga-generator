@@ -774,3 +774,54 @@ def get_resultado(res_id):
     with _db() as conn:
         row = conn.execute("SELECT r.*, c.programa_id, c.nombre AS competencia_nombre FROM resultados r JOIN competencias c ON c.id=r.competencia_id WHERE r.id=?", (res_id,)).fetchone()
     return dict(row) if row else None
+
+
+def get_resultado_contexto(res_id):
+    """Contexto de proyecto formativo asociado a un resultado de aprendizaje.
+
+    Devuelve el proyecto, la fase y la actividad vinculados al RAE. Si el
+    resultado aún no está asociado a una actividad, devuelve el proyecto más
+    reciente del programa para conservar al menos proyecto y código.
+    """
+    if not valid_id(res_id):
+        return {}
+    with _db() as conn:
+        row = conn.execute(
+            """
+            SELECT p.id AS proyecto_id, p.nombre AS proyecto_nombre,
+                   p.codigo_sofia AS proyecto_codigo, p.regional AS proyecto_regional,
+                   p.centro_formacion AS proyecto_centro,
+                   f.id AS fase_id, f.nombre AS fase_nombre,
+                   a.id AS actividad_id, a.nombre AS actividad_nombre,
+                   a.descripcion AS actividad_descripcion
+            FROM actividad_resultados ar
+            JOIN actividades_proyecto a ON a.id = ar.actividad_id
+            JOIN fases_proyecto f ON f.id = a.fase_id
+            JOIN proyectos_formativos p ON p.id = f.proyecto_id
+            WHERE ar.resultado_id = ?
+            ORDER BY p.actualizado_en DESC, f.orden, f.rowid, a.orden, a.rowid
+            LIMIT 1
+            """,
+            (res_id,),
+        ).fetchone()
+        if row:
+            return dict(row)
+
+        programa = conn.execute(
+            "SELECT c.programa_id FROM resultados r JOIN competencias c ON c.id = r.competencia_id WHERE r.id = ?",
+            (res_id,),
+        ).fetchone()
+        if not programa:
+            return {}
+        proyecto = conn.execute(
+            """
+            SELECT id AS proyecto_id, nombre AS proyecto_nombre, codigo_sofia AS proyecto_codigo,
+                   regional AS proyecto_regional, centro_formacion AS proyecto_centro
+            FROM proyectos_formativos
+            WHERE programa_id = ?
+            ORDER BY actualizado_en DESC, rowid
+            LIMIT 1
+            """,
+            (programa["programa_id"],),
+        ).fetchone()
+    return dict(proyecto) if proyecto else {}
