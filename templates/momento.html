@@ -54,6 +54,15 @@
 {{ textarea("Preguntas para el debate", "act." ~ activity.uid ~ ".debate", activity.debate | lineas, rows=4, hint="Una pregunta por línea.") }}
 </div>
 
+<!-- Nueva sección: Ilustración/imagen -->
+<div class="field">
+<label class="field">
+<span class="field__label">Ilustración o imagen</span>
+<input type="text" name="act.{{ activity.uid }}.imagen" value="{{ activity.imagen or '' }}" placeholder="URL de la imagen o descripción" class="field__input"/>
+<p class="field__hint">Puede ingresar una URL o descripción de la imagen a incluir</p>
+</label>
+</div>
+
 <div class="field-grid">
 {{ textarea("Evidencias de aprendizaje", "act." ~ activity.uid ~ ".evidencias", activity.evidencias | lineas, rows=4, hint="Una evidencia por línea. Obligatoria en apropiación y transferencia.") }}
 {{ textarea("Criterios de evaluación", "act." ~ activity.uid ~ ".criterios", activity.criterios | lineas, rows=4, hint="Un criterio por línea.") }}

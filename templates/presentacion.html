@@ -45,6 +45,15 @@
 <textarea name="block.{{ block.uid }}.texto" rows="{{ 2 if block.tipo == 'subtitulo' else 4 }}">{{ block.texto }}</textarea>
 </label>
 </div>
+
+<!-- Nueva sección: Ilustración/imagen para bloque -->
+<div class="field">
+<label class="field">
+<span class="field__label">Ilustración o imagen</span>
+<input type="text" name="block.{{ block.uid }}.imagen" value="{{ block.imagen or '' }}" placeholder="URL de la imagen o descripción" class="field__input"/>
+<p class="field__hint">Puede ingresar una URL o descripción de la imagen a incluir</p>
+</label>
+</div>
 </article>
 {% endfor %}
 </div>

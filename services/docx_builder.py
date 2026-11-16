@@ -1,4 +1,7 @@
+import base64
+import os
 import re
+import uuid
 from pathlib import Path
 
 from docx import Document
@@ -149,6 +152,47 @@ def _add_runs(paragraph, text, size=None, bold=None, italic=None, color=None):
             is_italic = True
         run = paragraph.add_run(part)
         _set_run(run, size=size, bold=is_bold, italic=is_italic, color=color)
+
+
+def _add_image(doc, image_data, position="after_paragraph", size=Pt(150)):
+    """Add an image to the document. image_data can be base64 string or file path.
+    
+    position: "after_paragraph" adds image after the current paragraph,
+              "new_paragraph" creates a new paragraph with the image.
+    """
+    import base64
+    import os
+    
+    if not image_data:
+        return
+    
+    # If it's a base64 data URL
+    if image_data.startswith("data:image"):
+        try:
+            header, data = image_data.split(",", 1)
+            img_data = base64.b64decode(data)
+            temp_path = f"/tmp/ga_image_{uuid.uuid4().hex}.png"
+            with open(temp_path, "wb") as f:
+                f.write(img_data)
+            # Add image as a new paragraph
+            img_para = doc.add_paragraph()
+            img_para.add_picture(temp_path, width=size)
+            # Clean up temp file
+            try:
+                os.unlink(temp_path)
+            except:
+                pass
+            return
+        except Exception:
+            pass
+    
+    # If it's a file path
+    if os.path.exists(str(image_data)):
+        try:
+            img_para = doc.add_paragraph()
+            img_para.add_picture(str(image_data), width=size)
+        except Exception:
+            pass
 
 
 def _clean_markdown(text):
@@ -438,6 +482,14 @@ def _add_activity(doc, moment_id, activity, index, evidence_items):
     _add_heading(doc, activity.get("titulo") or f"Actividad {index + 1}", 4)
     if str(activity.get("introduccion") or "").strip():
         _add_body(doc, activity.get("introduccion"))
+    # Nueva: Insertar título de figura y ilustración/imagen si está presente
+    if str(activity.get("imagen") or "").strip():
+        # Agregar título de figura
+        figura_titulo = activity.get("figura_titulo", "")
+        if figura_titulo:
+            _add_heading(doc, figura_titulo, 5)
+        # Agregar imagen
+        _add_image(doc, activity["imagen"])
     for instruction in activity.get("instrucciones", []):
         if str(instruction).strip():
             _add_bullet(doc, instruction)

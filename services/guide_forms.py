@@ -20,6 +20,7 @@ from services.suggestions import suggest_section
 TEXT_FIELDS = ("titulo", "introduccion", "ambiente", "estrategias", "modalidad")
 LIST_FIELDS = ("instrucciones", "debate", "instrumentos", "evidencias", "criterios")
 MATERIAL_FIELDS = ("consumible", "devolutivo", "apoyo")
+IMAGE_FIELD = "imagen"
 MAX_ITEMS = 50
 
 _UID_KEY = re.compile(r"^(?:act|block)\.([A-Za-z0-9_-]+)\.")
@@ -211,6 +212,13 @@ def _activity_from_form(form, uid, moment_id, index):
         key = prefix + "materiales." + field
         if key in form:
             activity["materiales"][field] = _text(form.get(key))
+    # Nuevo campo: imagen (puede ser base64 o URL)
+    image_key = prefix + IMAGE_FIELD
+    if image_key in form:
+        activity["imagen"] = _text(form.get(image_key))
+    # Nuevo: título de figura consecutivo (se asignará después en normalize_guide,
+    # pero guardamos el indicativo para que no se pierda)
+    activity["figura_titulo"] = ""
     key = prefix + "duracion_horas"
     if key in form:
         activity["duracion_horas"] = _hours(form.get(key))

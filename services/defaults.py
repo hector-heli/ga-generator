@@ -70,6 +70,7 @@ def empty_activity(moment_id="apropiacion", index=0):
         "modalidad": "Grupal",
         "evidencias": [],
         "criterios": [],
+        "imagen": "",  # Base64 o URL de imagen/ilustración
     }
 
 
@@ -175,6 +176,12 @@ def _normalize_activity(raw, moment_id, index):
     elif raw.get("materiales"):
         base["materiales"]["consumible"] = _as_text(raw["materiales"])
     base["duracion_horas"] = _as_hours(raw.get("duracion_horas", base["duracion_horas"]))
+    # Nueva campo: imagen (base64 o URL)
+    if "imagen" in raw:
+        base["imagen"] = str(raw["imagen"])
+        base["figura_titulo"] = ""
+    else:
+        base["figura_titulo"] = ""
     return base
 
 
@@ -242,6 +249,14 @@ def normalize_guide(raw):
             if source.get("titulo"):
                 base["momentos"][moment_id]["titulo"] = _as_text(source["titulo"])
 
+    # --- Asignar títulos de figura consecutivos a actividades con imagen ---
+    contador_figura = 1
+    for moment_id in MOMENT_ORDER:
+        for activity in base["momentos"][moment_id]["actividades"]:
+            if activity.get("imagen"):
+                activity["figura_titulo"] = f"Figura {contador_figura}"
+                contador_figura += 1
+
     for key in ("evidencias", "referencias", "control_cambios"):
         if isinstance(raw.get(key), list):
             base[key] = copy.deepcopy(raw[key])
@@ -296,6 +311,20 @@ def rae_code(guide):
     if match:
         return match.group(0).replace(" ", "").upper()
     return "RAE"
+
+
+def _contar_figuras(guide):
+    """Cuenta el número total de actividades con imagen en la guía."""
+    contador = 0
+    for moment_id, moment, activity, index in iter_activities(guide):
+        if activity.get("imagen"):
+            contador += 1
+    return contador
+
+
+def siguiente_numero_figura(guide):
+    """Retorna el próximo número de figura consecutivo."""
+    return _contar_figuras(guide) + 1
 
 
 def safe_slug(text, fallback="guia"):
