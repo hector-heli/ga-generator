@@ -1,6 +1,6 @@
 # GA Generator — Servidor web
 
-Aplicación Flask multipágina para crear, revisar y generar guías de aprendizaje SENA con la plantilla `templates_ga/GA_GFPI-F-135_plantilla.docx`. Cada sección de la guía tiene su propia página y se guarda por separado; la barra lateral muestra el avance y los pendientes. También puede exportar a PDF si LibreOffice está instalado.
+Aplicación web diseñada para apoyar los procesos de planeación, desarrollo, ejecución y evaluación de la Formación Profesional Integral realizados por el equipo de instructores SENA (equipo ejecutor) de cada centro de formación. Orienta los procesos según la guía de desarrollo curricular publicado por el SENA, facilitando la creación, gestión y generación de guías de aprendizaje alineadas con los estándares y formatos institucionales.
 
 ## Requisitos
 
